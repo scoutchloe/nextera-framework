@@ -1,0 +1,63 @@
+# Prometheus全局配置
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'nextera-cluster'
+    replica: 'nextera'
+
+# 告警规则文件
+rule_files:
+  # - "alerts.yml"
+
+# Scrape配置
+scrape_configs:
+  # Prometheus自身监控
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 5s
+
+  # 系统级监控（如果有node_exporter）
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['host.docker.internal:9100']
+    scrape_interval: 15s
+
+  # MySQL监控（如果有mysqld_exporter）
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['host.docker.internal:9104']
+    scrape_interval: 15s
+
+  # Redis监控（如果有redis_exporter）
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['host.docker.internal:9121']
+    scrape_interval: 15s
+
+  # Nextera应用服务监控
+  - job_name: 'nextera-gateway'
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+
+  - job_name: 'nextera-user'
+    static_configs:
+      - targets: ['host.docker.internal:8081']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+
+  - job_name: 'nextera-article'
+    static_configs:
+      - targets: ['host.docker.internal:8082']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+
+# 可选：Alertmanager配置
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093

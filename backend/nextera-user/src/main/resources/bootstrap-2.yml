@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: nextera-user
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      username: nacos
+      password: nacos
+      discovery:
+        server-addr: localhost:8848
+        namespace: 253e9832-53e9-43eb-bfae-4c311a7ce0fa
+        group: DEFAULT_GROUP
+
+      config:
+#        import-check:
+#          enabled: false
+        server-addr: localhost:8848
+        namespace: 253e9832-53e9-43eb-bfae-4c311a7ce0fa
+        group: DEFAULT_GROUP
+        file-extension: yml
+        enabled: true
+        refresh-enabled: true
+        shared-configs:
+          - nextera-common.yml
+        prefix: ${spring.application.name}
+#  nacos:
+#    config:
+#      import-check:
+#        enabled: false

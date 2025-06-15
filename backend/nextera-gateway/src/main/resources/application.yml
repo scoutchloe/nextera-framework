@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: nextera-gateway
+  profiles:
+    active: dev
+  cloud:
+#    discovery:
+#      enabled: true
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: 253e9832-53e9-43eb-bfae-4c311a7ce0fa
+        watch:
+          enabled: true
+        watch-delay: 1000
+      #        group: DEFAULT_GROUP
+      config:
+        server-addr: localhost:8848
+        namespace: 253e9832-53e9-43eb-bfae-4c311a7ce0fa
+        group: DEFAULT_GROUP
+        file-extension: yml
+        shared-configs:
+          - nextera-common.yml
+      username: nacos
+      password: nacos
+  config:
+    import:
+      - optional:nacos:application-${spring.profiles.active}.yml
+      - optional:nacos:${spring.application.name}-${spring.profiles.active}.yml
+  main:
+    web-application-type: reactive
+    allow-bean-definition-overriding: true

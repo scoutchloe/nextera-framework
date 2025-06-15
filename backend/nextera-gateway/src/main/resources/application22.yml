@@ -1,0 +1,94 @@
+server:
+  port: 7000
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+
+
+      server:
+        webflux:
+          routes:
+            # 用户服务路由
+            - id: nextera-user
+              uri: lb://nextera-user
+              predicates:
+                - Path=/api/user/**
+              filters:
+                - StripPrefix=2
+            # 文章服务路由
+            - id: nextera-article
+              uri: lb://nextera-article
+              predicates:
+                - Path=/api/article/**
+              filters:
+                - StripPrefix=2
+            # 用户管理服务路由
+            - id: nextera-manage-user
+              uri: lb://nextera-manage-user
+              predicates:
+                - Path=/api/manage-user/**
+              filters:
+                - StripPrefix=2
+            # 认证服务路由
+            - id: nextera-auth
+              uri: lb://nextera-auth
+              predicates:
+                - Path=/api/auth/**
+              filters:
+                - StripPrefix=2
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    password:
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+
+# 日志配置
+logging:
+  level:
+    com.nextera: debug
+    org.springframework.cloud.gateway: info
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n'
+
+# 管理端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
+
+# Knife4j配置
+knife4j:
+  gateway:
+    enabled: true
+    strategy: discover
+    discover:
+      enabled: true
+      # 指定版本号(Swagger2|OpenAPI3)
+      version : openapi3
+      # 需要排除的微服务(eg:网关服务)
+      excluded-services:
+        - nextera-gateway

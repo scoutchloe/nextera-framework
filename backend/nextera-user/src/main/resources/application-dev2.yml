@@ -1,0 +1,78 @@
+server:
+  port: 7081
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/nextera_auth?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+    username: root
+    password: nextera123
+  redis:
+    host: localhost
+    port: 6379
+    database: 1
+    password:
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:mapper/**/*Mapper.xml
+
+# OpenFeign配置
+feign:
+  client:
+    config:
+      default:
+        connect-timeout: 5000
+        read-timeout: 5000
+  compression:
+    request:
+      enabled: true
+    response:
+      enabled: true
+
+# 日志配置
+logging:
+  level:
+    com.nextera: debug
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n'
+
+# 管理端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+# Knife4j配置
+knife4j:
+  enable: true
+  openapi:
+    title: Nextera用户服务API
+    description: "用户服务API文档"
+    version: 1.0.0
+    group:
+      default:
+        group-name: 用户服务
+        api-rule: package
+        api-rule-resources:
+          - com.nextera.user.controller

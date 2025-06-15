@@ -1,0 +1,290 @@
+version: '3.8'
+
+services:
+  # MySQL数据库
+  mysql:
+    image: mysql:8.0
+    container_name: nextera-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: nextera123
+      MYSQL_DATABASE: nextera
+      MYSQL_USER: nextera
+      MYSQL_PASSWORD: nextera123
+      TZ: Asia/Shanghai
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/conf:/etc/mysql/conf.d
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - nextera-network
+
+  # Redis缓存
+  redis:
+    image: redis:7.0-alpine
+    container_name: nextera-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./docker/redis/redis.conf:/etc/redis/redis.conf
+    command: redis-server /etc/redis/redis.conf
+    networks:
+      - nextera-network
+
+  # Nacos注册与配置中心
+  nacos:
+    image: nacos/nacos-server:v2.4.2
+    container_name: nextera-nacos
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    environment:
+      # 基础配置
+      MODE: standalone
+      PREFER_HOST_MODE: hostname
+      
+      # 数据库配置
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: mysql
+      MYSQL_SERVICE_DB_NAME: nacos
+      MYSQL_SERVICE_PORT: 3306
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: nextera123
+      MYSQL_SERVICE_DB_PARAM: characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+      
+      # 新版本数据库配置（v2.x推荐）
+      NACOS_AUTH_ENABLE: "true"
+      NACOS_AUTH_TOKEN: bmV4dGVyYVNlY3JldEtleUZvck5hY29zQXV0aFRva2VuMjAyNAo=
+      NACOS_AUTH_IDENTITY_KEY: nacos
+      NACOS_AUTH_IDENTITY_VALUE: nacos
+      
+      # JVM配置
+      JVM_XMS: 256m
+      JVM_XMX: 256m
+      JVM_XMN: 128m
+    volumes:
+      - nacos_logs:/home/nacos/logs
+    depends_on:
+      - mysql
+    networks:
+      - nextera-network
+    restart: unless-stopped
+
+  # RocketMQ NameServer
+  rocketmq-nameserver:
+    image: apache/rocketmq:5.1.3
+    container_name: nextera-rocketmq-nameserver
+    ports:
+      - "9876:9876"
+    volumes:
+      - rocketmq_nameserver_logs:/home/rocketmq/logs
+      - rocketmq_nameserver_store:/home/rocketmq/store
+    environment:
+      JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512m -Xmx512m -Xmn256m"
+    command: ["sh", "mqnamesrv"]
+    networks:
+      - nextera-network
+    restart: unless-stopped
+
+  # RocketMQ Broker
+  rocketmq-broker:
+    image: apache/rocketmq:5.1.3
+    container_name: nextera-rocketmq-broker
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+      - "10912:10912"
+    volumes:
+      - rocketmq_broker_logs:/home/rocketmq/logs
+      - rocketmq_broker_store:/home/rocketmq/store
+      - ./docker/rocketmq/broker.conf:/opt/rocketmq/conf/broker.conf:ro
+    environment:
+      NAMESRV_ADDR: "rocketmq-nameserver:9876"
+      JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms1024m -Xmx1024m -Xmn512m"
+      MAX_POSSIBLE_HEAP: "1024m"
+    command: ["sh", "mqbroker", "-c", "/opt/rocketmq/conf/broker.conf"]
+    depends_on:
+      - rocketmq-nameserver
+    networks:
+      - nextera-network
+    restart: unless-stopped
+
+  # RocketMQ Console
+  rocketmq-console:
+    image: styletang/rocketmq-console-ng:latest
+    container_name: nextera-rocketmq-console
+    ports:
+      - "8180:8080"
+    environment:
+      JAVA_OPTS: "-Drocketmq.namesrv.addr=rocketmq-nameserver:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false -Xms256m -Xmx256m"
+      ROCKETMQ_CONFIG_NAMESRVADDR: "rocketmq-nameserver:9876"
+      ROCKETMQ_CONFIG_LOGINREQUIRED: "false"
+    depends_on:
+      - rocketmq-nameserver
+      - rocketmq-broker
+    networks:
+      - nextera-network
+    restart: unless-stopped
+
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: nextera-elasticsearch
+    environment:
+      - node.name=nextera-elasticsearch
+      - cluster.name=nextera-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - network.host=0.0.0.0
+      - http.host=0.0.0.0
+      - transport.host=0.0.0.0
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - nextera-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Kibana
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: nextera-kibana
+    environment:
+      - SERVER_NAME=nextera-kibana
+      - SERVER_HOST=0.0.0.0
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=
+      - ELASTICSEARCH_PASSWORD=
+      - XPACK_SECURITY_ENABLED=false
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=nextera-kibana-encryption-key-32-chars
+      - XPACK_REPORTING_ENCRYPTIONKEY=nextera-kibana-reporting-key-32-chars
+      - XPACK_SECURITY_ENCRYPTIONKEY=nextera-kibana-security-key-32-chars
+    ports:
+      - "5601:5601"
+    volumes:
+      - kibana_data:/usr/share/kibana/data
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - nextera-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: nextera-prometheus
+    user: "root"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+      - '--web.listen-address=0.0.0.0:9090'
+      - '--storage.tsdb.wal-compression'
+    networks:
+      - nextera-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: nextera-grafana
+    user: "root"
+    ports:
+      - "3000:3000"
+    environment:
+      # 基础配置
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      
+      # 服务器配置
+      GF_SERVER_HTTP_PORT: 3000
+      GF_SERVER_PROTOCOL: http
+      GF_SERVER_DOMAIN: localhost
+      GF_SERVER_ROOT_URL: http://localhost:3000/
+      
+      # 数据库配置（使用SQLite）
+      GF_DATABASE_TYPE: sqlite3
+      GF_DATABASE_PATH: /var/lib/grafana/grafana.db
+      
+      # 日志配置
+      GF_LOG_MODE: console
+      GF_LOG_LEVEL: info
+      
+      # 插件配置
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel
+      
+      # 禁用一些不需要的功能
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./docker/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    networks:
+      - nextera-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mysql_data:
+  redis_data:
+  nacos_logs:
+  rocketmq_nameserver_logs:
+  rocketmq_nameserver_store:
+  rocketmq_broker_logs:
+  rocketmq_broker_store:
+  elasticsearch_data:
+  kibana_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  nextera-network:
+    driver: bridge 
