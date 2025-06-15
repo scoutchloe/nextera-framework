@@ -258,8 +258,59 @@ INSERT INTO article_category (id, category_name, category_key, parent_id, sort_o
 (5, 'Vue.js', 'vue', 1, 2, 'Vue.js技术文章', '0', 'system'),
 (6, 'Spring Boot', 'spring-boot', 1, 3, 'Spring Boot技术文章', '0', 'system');
 
+-- 创建用户文章操作记录表
+DROP TABLE IF EXISTS user_article;
+CREATE TABLE user_article (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '记录ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    username VARCHAR(50) NOT NULL COMMENT '用户名',
+    article_id BIGINT NOT NULL COMMENT '文章ID',
+    article_title VARCHAR(200) COMMENT '文章标题',
+    action_type TINYINT NOT NULL COMMENT '操作类型(1-创建 2-编辑 3-发布 4-下架 5-删除)',
+    action_desc VARCHAR(255) COMMENT '操作描述',
+    ip_address VARCHAR(50) COMMENT 'IP地址',
+    user_agent VARCHAR(500) COMMENT '用户代理',
+    action_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    is_deleted TINYINT DEFAULT 0 COMMENT '删除标志(0-存在 1-删除)',
+    INDEX idx_user_id (user_id),
+    INDEX idx_article_id (article_id),
+    INDEX idx_action_type (action_type),
+    INDEX idx_action_time (action_time),
+    INDEX idx_username (username)
+) COMMENT='用户文章操作记录表';
+
+-- 更新文章表结构，添加新字段
+ALTER TABLE article 
+ADD COLUMN seo_keywords VARCHAR(500) COMMENT 'SEO关键词' AFTER tags,
+ADD COLUMN seo_description VARCHAR(1000) COMMENT 'SEO描述' AFTER seo_keywords;
+
+-- 更新文章分类表结构，添加新字段
+ALTER TABLE article_category 
+ADD COLUMN name VARCHAR(50) NOT NULL COMMENT '分类名称' AFTER id,
+ADD COLUMN description TEXT COMMENT '分类描述' AFTER name,
+ADD COLUMN parent_id BIGINT DEFAULT 0 COMMENT '父分类ID' AFTER description,
+ADD COLUMN sort_order INT DEFAULT 0 COMMENT '排序号' AFTER parent_id,
+ADD COLUMN icon VARCHAR(100) COMMENT '分类图标' AFTER status,
+ADD COLUMN color VARCHAR(20) COMMENT '分类颜色' AFTER icon,
+ADD COLUMN article_count BIGINT DEFAULT 0 COMMENT '文章数量' AFTER color,
+ADD COLUMN create_by BIGINT COMMENT '创建者ID' AFTER update_time,
+ADD COLUMN update_by BIGINT COMMENT '更新者ID' AFTER create_by,
+ADD COLUMN is_deleted TINYINT DEFAULT 0 COMMENT '删除标志(0-否 1-是)' AFTER update_by;
+
+-- 更新文章表结构，添加新字段
+ALTER TABLE article 
+ADD COLUMN create_by BIGINT COMMENT '创建者ID' AFTER update_time,
+ADD COLUMN update_by BIGINT COMMENT '更新者ID' AFTER create_by,
+ADD COLUMN is_deleted TINYINT DEFAULT 0 COMMENT '删除标志(0-否 1-是)' AFTER update_by;
+
 -- 插入示例文章
 INSERT INTO article (id, title, content, summary, author_id, author_name, category_id, tags, status, publish_time, create_by) VALUES
-(1, '欢迎使用Nextera框架', '# 欢迎使用Nextera框架\n\nNextera是一个基于Spring Cloud的现代化微服务开发框架...\n\n## 主要特性\n\n- 微服务架构\n- 统一认证\n- 权限管理\n- 前后端分离\n\n## 快速开始\n\n1. 克隆项目\n2. 启动基础服务\n3. 运行应用\n\n祝您使用愉快！', '这是Nextera框架的介绍文章，包含了框架的主要特性和使用方法。', 1, '系统管理员', 1, 'Nextera,框架,微服务', '1', NOW(), 'system');
+(1, '欢迎使用Nextera框架', '# 欢迎使用Nextera框架\n\nNextera是一个基于Spring Cloud的现代化微服务开发框架...\n\n## 主要特性\n\n- 微服务架构\n- 统一认证\n- 权限管理\n- 前后端分离\n\n## 快速开始\n\n1. 克隆项目\n2. 启动基础服务\n3. 运行应用\n\n祝您使用愉快！', '这是Nextera框架的介绍文章，包含了框架的主要特性和使用方法。', 1, '系统管理员', 1, 'Nextera,框架,微服务', '1', NOW(), 1);
+
+-- 插入示例用户文章记录
+INSERT INTO user_article (user_id, username, article_id, article_title, action_type, action_desc, ip_address, user_agent) VALUES
+(1, 'admin', 1, '欢迎使用Nextera框架', 1, '创建文章', '127.0.0.1', 'System');
 
 COMMIT; 

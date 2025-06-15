@@ -17,7 +17,7 @@
         <module>nextera-gateway</module>
         <module>nextera-auth</module>
         <module>nextera-user</module>
-<!--        <module>nextera-article</module>-->
+        <module>nextera-article</module>
 <!--        <module>nextera-manage-user</module>-->
     </modules>
 
