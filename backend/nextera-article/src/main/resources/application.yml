@@ -1,57 +1,35 @@
 spring:
   application:
     name: nextera-article
-  
-
-
-  # Nacos配置
+  profiles:
+    active: dev
   cloud:
     nacos:
+      username: nacos
+      password: nacos
       discovery:
         server-addr: localhost:8848
-        namespace: nextera
+        namespace: 253e9832-53e9-43eb-bfae-4c311a7ce0fa
+
         group: DEFAULT_GROUP
-        service: ${spring.application.name}
+
       config:
+        import-check:
+          enabled: false
         server-addr: localhost:8848
-        namespace: nextera
+        namespace: 253e9832-53e9-43eb-bfae-4c311a7ce0fa
         group: DEFAULT_GROUP
         file-extension: yml
-
-
-
-
-
-# 日志配置
-logging:
-  level:
-    com.nextera.article.mapper: debug
-    org.apache.dubbo: debug
-  pattern:
-    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'
-
-# 监控端点配置
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-  endpoint:
-    health:
-      show-details: always
-
-# Knife4j配置
-knife4j:
-  enable: true
-  openapi:
-    title: Nextera Article API
-    description: 文章服务API文档
-    version: 1.0.0
-    contact:
-      name: Nextera Team
-      email: admin@nextera.com
-    license:
-      name: Apache 2.0
-      url: https://www.apache.org/licenses/LICENSE-2.0
-  setting:
-    language: zh_cn
+        enabled: true
+        refresh-enabled: true
+        shared-configs:
+          - nextera-common.yml
+  # 重要配置
+  config:
+    import:
+      - optional:nacos:application-${spring.profiles.active}.yml
+      - optional:nacos:${spring.application.name}-${spring.profiles.active}.yml
+  nacos:
+    config:
+      import-check:
+        enabled: true
