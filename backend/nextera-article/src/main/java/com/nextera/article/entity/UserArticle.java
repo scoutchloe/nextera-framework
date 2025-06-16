@@ -37,9 +37,9 @@ public class UserArticle {
     @TableField("article_title")
     private String articleTitle;
 
-    @Schema(description = "操作类型：1-创建，2-编辑，3-发布，4-下架")
+    @Schema(description = "操作类型：CREATE-创建，UPDATE-编辑，PUBLISH-发布，DELETE-删除")
     @TableField("action_type")
-    private Integer actionType;
+    private String actionType;
 
     @Schema(description = "操作描述")
     @TableField("action_desc")

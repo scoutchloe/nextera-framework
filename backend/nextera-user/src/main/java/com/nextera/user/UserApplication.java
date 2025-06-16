@@ -1,5 +1,6 @@
 package com.nextera.user;
 
+import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -12,6 +13,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  */
 @EnableFeignClients
 @EnableDiscoveryClient
+@EnableDubbo
 @SpringBootApplication(scanBasePackages = {"com.nextera.user", "com.nextera.common"})
 public class UserApplication {
     public static void main(String[] args) {

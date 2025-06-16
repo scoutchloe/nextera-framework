@@ -1,3 +1,6 @@
+server:
+  port: 8081
+
 spring:
   application:
     name: nextera-user
@@ -38,3 +41,107 @@ spring:
       enabled: false
 #  config:
 #    import: optional:nacos
+
+# 数据库配置
+datasource:
+  driver-class-name: com.mysql.cj.jdbc.Driver
+  url: jdbc:mysql://localhost:3306/nextera?useUnicode=true&characterEncoding=utf8mb4&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+  username: nextera
+  password: nextera123
+
+# Redis配置
+data:
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    timeout: 3000ms
+    jedis:
+      pool:
+        max-active: 200
+        max-wait: -1ms
+        max-idle: 10
+        min-idle: 0
+
+# Nacos配置
+cloud:
+  nacos:
+    discovery:
+      server-addr: localhost:8848
+      namespace: nextera
+      group: DEFAULT_GROUP
+      service: ${spring.application.name}
+    config:
+      server-addr: localhost:8848
+      namespace: nextera
+      group: DEFAULT_GROUP
+      file-extension: yml
+
+# Dubbo配置
+dubbo:
+  application:
+    name: ${spring.application.name}
+  protocol:
+    name: dubbo
+    port: 20881
+  registry:
+    address: nacos://localhost:8848?namespace=nextera&group=DEFAULT_GROUP
+  provider:
+    timeout: 5000
+    retries: 0
+  consumer:
+    timeout: 5000
+    retries: 0
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    # 是否开启自动驼峰命名规则映射
+    map-underscore-to-camel-case: true
+    # 开启 MyBatis 二级缓存，默认为 true
+    cache-enabled: false
+    # 日志
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      # 主键策略
+      id-type: ASSIGN_ID
+      # 逻辑删除
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:mapper/**/*.xml
+
+# 日志配置
+logging:
+  level:
+    com.nextera.user.mapper: debug
+    org.apache.dubbo: debug
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'
+
+# 监控端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+# Knife4j配置
+knife4j:
+  enable: true
+  openapi:
+    title: Nextera User API
+    description: 用户服务API文档
+    version: 1.0.0
+    contact:
+      name: Nextera Team
+      email: admin@nextera.com
+    license:
+      name: Apache 2.0
+      url: https://www.apache.org/licenses/LICENSE-2.0
+  setting:
+    language: zh_cn

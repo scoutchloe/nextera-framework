@@ -41,9 +41,9 @@ public class Article {
     @TableField("author_id")
     private Long authorId;
 
-    @Schema(description = "作者姓名")
-    @TableField("author_name")
-    private String authorName;
+    @Schema(description = "作者用户名")
+    @TableField("author_username")
+    private String authorUsername;
 
     @Schema(description = "文章状态：0-草稿，1-已发布，2-已下架")
     @TableField("status")
@@ -51,11 +51,11 @@ public class Article {
 
     @Schema(description = "阅读次数")
     @TableField("view_count")
-    private Long viewCount;
+    private Integer viewCount;
 
     @Schema(description = "点赞次数")
     @TableField("like_count")
-    private Long likeCount;
+    private Integer likeCount;
 
     @Schema(description = "评论次数")
     @TableField("comment_count")
@@ -92,6 +92,10 @@ public class Article {
     @Schema(description = "更新时间")
     @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
+
+    @Schema(description = "发布时间")
+    @TableField("publish_time")
+    private LocalDateTime publishTime;
 
     @Schema(description = "创建者ID")
     @TableField(value = "create_by", fill = FieldFill.INSERT)

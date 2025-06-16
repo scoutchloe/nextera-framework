@@ -117,7 +117,8 @@ public class LocalArticleServiceImpl implements LocalArticleService {
                     id -> {
                         ArticleCategory category = categoryMapper.selectById(id);
                         return category != null ? category.getName() : "未分类";
-                    }
+                    },
+                    (existing, replacement) -> existing
                 ));
             
             // 转换为DTO

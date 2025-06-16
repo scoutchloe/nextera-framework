@@ -14,8 +14,9 @@
 
     <modules>
         <module>nextera-common</module>
+        <module>nextera-api</module>
         <module>nextera-gateway</module>
-        <module>nextera-auth</module>
+<!--        <module>nextera-auth</module>-->
         <module>nextera-user</module>
         <module>nextera-article</module>
 <!--        <module>nextera-manage-user</module>-->
@@ -176,6 +177,11 @@
             <dependency>
                 <groupId>com.nextera</groupId>
                 <artifactId>nextera-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nextera</groupId>
+                <artifactId>nextera-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

@@ -13,6 +13,7 @@ public enum ResultCode {
     // 通用状态码
     SUCCESS(200, "操作成功"),
     ERROR(500, "操作失败"),
+    OPERATION_ERROR(500, "操作失败"),
     PARAM_ERROR(400, "参数错误"),
     UNAUTHORIZED(401, "未授权"),
     FORBIDDEN(403, "权限不足"),

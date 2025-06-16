@@ -1,36 +1,9 @@
-server:
-  port: 8082
-  servlet:
-    context-path: /
-
 spring:
   application:
     name: nextera-article
-  profiles:
-    active: dev
   
-  # 数据源配置
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/nextera?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: root
-    password: 123456
-  
-  # Redis配置
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password: 
-      database: 0
-      timeout: 3000ms
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
-          max-wait: -1ms
-  
+
+
   # Nacos配置
   cloud:
     nacos:
@@ -38,55 +11,31 @@ spring:
         server-addr: localhost:8848
         namespace: nextera
         group: DEFAULT_GROUP
+        service: ${spring.application.name}
       config:
         server-addr: localhost:8848
         namespace: nextera
         group: DEFAULT_GROUP
         file-extension: yml
 
-# MyBatis-Plus配置
-mybatis-plus:
-  configuration:
-    map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-  global-config:
-    db-config:
-      id-type: ASSIGN_ID
-      logic-delete-field: isDeleted
-      logic-delete-value: 1
-      logic-not-delete-value: 0
-  mapper-locations: classpath*:mapper/*.xml
 
-# Dubbo配置
-dubbo:
-  application:
-    name: nextera-article
-  registry:
-    address: nacos://localhost:8848?namespace=nextera&group=DEFAULT_GROUP
-  protocol:
-    name: dubbo
-    port: 20882
-  provider:
-    timeout: 10000
-    retries: 0
-  consumer:
-    timeout: 10000
-    retries: 0
+
+
 
 # 日志配置
 logging:
   level:
-    com.nextera.article: DEBUG
-    com.baomidou.mybatisplus: DEBUG
+    com.nextera.article.mapper: debug
+    org.apache.dubbo: debug
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'
 
-# 管理端点配置
+# 监控端点配置
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: "*"
   endpoint:
     health:
       show-details: always
@@ -96,11 +45,13 @@ knife4j:
   enable: true
   openapi:
     title: Nextera Article API
-    description: 文章管理服务API文档
+    description: 文章服务API文档
     version: 1.0.0
-    group:
-      default:
-        group-name: 文章管理
-        api-rule: package
-        api-rule-resources:
-          - com.nextera.article.controller 
+    contact:
+      name: Nextera Team
+      email: admin@nextera.com
+    license:
+      name: Apache 2.0
+      url: https://www.apache.org/licenses/LICENSE-2.0
+  setting:
+    language: zh_cn

@@ -83,6 +83,12 @@
             <artifactId>nextera-common</artifactId>
         </dependency>
 
+        <!-- API模块 -->
+        <dependency>
+            <groupId>com.nextera</groupId>
+            <artifactId>nextera-api</artifactId>
+        </dependency>
+
         <!-- Spring Boot Cache -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

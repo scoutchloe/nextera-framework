@@ -1,11 +1,10 @@
 package com.nextera.article.dubbo.impl;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.nextera.article.dubbo.ArticleService;
-import com.nextera.article.dto.ArticleCreateRequest;
-import com.nextera.article.dto.ArticleDTO;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.nextera.api.article.dto.ArticleCreateRequest;
+import com.nextera.api.article.dto.ArticleDTO;
+import com.nextera.api.article.service.ArticleService;
 import com.nextera.article.entity.Article;
 import com.nextera.article.entity.ArticleCategory;
 import com.nextera.article.entity.UserArticle;
@@ -13,7 +12,9 @@ import com.nextera.article.mapper.ArticleCategoryMapper;
 import com.nextera.article.mapper.ArticleMapper;
 import com.nextera.article.mapper.UserArticleMapper;
 import com.nextera.common.core.Result;
-import com.nextera.common.core.ResultCode;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboService;
@@ -21,6 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 文章服务Dubbo实现类
@@ -30,7 +34,7 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 @Service
-@DubboService
+@DubboService(version = "1.0.0")
 @RequiredArgsConstructor
 public class ArticleServiceImpl implements ArticleService {
 
@@ -42,49 +46,40 @@ public class ArticleServiceImpl implements ArticleService {
     @Transactional(rollbackFor = Exception.class)
     public Result<ArticleDTO> createArticle(ArticleCreateRequest request, Long userId, String username, String ipAddress, String userAgent) {
         try {
-            // 验证分类是否存在
-            ArticleCategory category = categoryMapper.selectById(request.getCategoryId());
-            if (category == null) {
-                return Result.error(ResultCode.PARAM_ERROR, "分类不存在");
-            }
-
-            // 创建文章
+            // 转换为Article实体
             Article article = new Article();
             BeanUtil.copyProperties(request, article);
+            
+            // 设置作者信息
             article.setAuthorId(userId);
-            article.setAuthorName(username);
-            article.setViewCount(0L);
-            article.setLikeCount(0L);
-            article.setCommentCount(0L);
-            article.setCreateBy(userId);
-            article.setUpdateBy(userId);
-
-            // 如果没有提供摘要，自动生成
-            if (StrUtil.isBlank(article.getSummary()) && StrUtil.isNotBlank(article.getContent())) {
-                String summary = article.getContent().length() > 200 ? 
-                    article.getContent().substring(0, 200) + "..." : article.getContent();
-                article.setSummary(summary);
+            article.setAuthorUsername(username);
+            
+            // 设置默认值
+            article.setViewCount(0);
+            article.setLikeCount(0);
+            article.setCreateTime(LocalDateTime.now());
+            article.setUpdateTime(LocalDateTime.now());
+            
+            // 如果状态为发布，设置发布时间
+            if (article.getStatus() != null && article.getStatus() == 1) {
+                article.setPublishTime(LocalDateTime.now());
             }
-
-            int result = articleMapper.insert(article);
-            if (result <= 0) {
-                return Result.error(ResultCode.OPERATION_ERROR, "创建文章失败");
-            }
-
+            
+            // 保存文章
+            articleMapper.insert(article);
+            
             // 记录用户操作
-            recordUserAction(article.getId(), article.getTitle(), userId, username, 
-                           1, "创建文章", ipAddress, userAgent);
-
-            // 更新分类文章数量
-            updateCategoryArticleCount(request.getCategoryId());
-
-            // 构造返回结果
-            ArticleDTO articleDTO = convertToDTO(article, category.getName());
+            recordUserAction(userId, username, article.getId(), "CREATE", 
+                "创建文章：" + article.getTitle(), ipAddress, userAgent);
+            
+            // 转换为DTO返回
+            ArticleDTO articleDTO = convertToDTO(article);
+            
             return Result.success(articleDTO);
-
+            
         } catch (Exception e) {
             log.error("创建文章失败", e);
-            return Result.error(ResultCode.OPERATION_ERROR, "创建文章失败: " + e.getMessage());
+            return Result.error("创建文章失败：" + e.getMessage());
         }
     }
 
@@ -93,19 +88,15 @@ public class ArticleServiceImpl implements ArticleService {
         try {
             Article article = articleMapper.selectById(id);
             if (article == null) {
-                return Result.error(ResultCode.DATA_NOT_FOUND, "文章不存在");
+                return Result.error("文章不存在");
             }
-
-            // 获取分类信息
-            ArticleCategory category = categoryMapper.selectById(article.getCategoryId());
-            String categoryName = category != null ? category.getName() : "未分类";
-
-            ArticleDTO articleDTO = convertToDTO(article, categoryName);
+            
+            ArticleDTO articleDTO = convertToDTO(article);
             return Result.success(articleDTO);
-
+            
         } catch (Exception e) {
-            log.error("获取文章失败", e);
-            return Result.error(ResultCode.OPERATION_ERROR, "获取文章失败: " + e.getMessage());
+            log.error("获取文章详情失败", e);
+            return Result.error("获取文章详情失败：" + e.getMessage());
         }
     }
 
@@ -113,58 +104,39 @@ public class ArticleServiceImpl implements ArticleService {
     @Transactional(rollbackFor = Exception.class)
     public Result<ArticleDTO> updateArticle(Long id, ArticleCreateRequest request, Long userId, String username, String ipAddress, String userAgent) {
         try {
+            // 检查文章是否存在
             Article existingArticle = articleMapper.selectById(id);
             if (existingArticle == null) {
-                return Result.error(ResultCode.DATA_NOT_FOUND, "文章不存在");
+                return Result.error("文章不存在");
             }
-
-            // 检查权限（只有作者可以修改）
-            if (!existingArticle.getAuthorId().equals(userId)) {
-                return Result.error(ResultCode.FORBIDDEN, "无权限修改此文章");
-            }
-
-            // 验证分类是否存在
-            ArticleCategory category = categoryMapper.selectById(request.getCategoryId());
-            if (category == null) {
-                return Result.error(ResultCode.PARAM_ERROR, "分类不存在");
-            }
-
-            // 更新文章
+            
+            // 转换为Article实体
             Article article = new Article();
             BeanUtil.copyProperties(request, article);
             article.setId(id);
-            article.setUpdateBy(userId);
-
-            // 如果没有提供摘要，自动生成
-            if (StrUtil.isBlank(article.getSummary()) && StrUtil.isNotBlank(article.getContent())) {
-                String summary = article.getContent().length() > 200 ? 
-                    article.getContent().substring(0, 200) + "..." : article.getContent();
-                article.setSummary(summary);
+            article.setUpdateTime(LocalDateTime.now());
+            
+            // 如果状态变为发布，设置发布时间
+            if (article.getStatus() != null && article.getStatus() == 1 && existingArticle.getStatus() != 1) {
+                article.setPublishTime(LocalDateTime.now());
             }
-
-            int result = articleMapper.updateById(article);
-            if (result <= 0) {
-                return Result.error(ResultCode.OPERATION_ERROR, "更新文章失败");
-            }
-
+            
+            // 更新文章
+            articleMapper.updateById(article);
+            
             // 记录用户操作
-            recordUserAction(id, request.getTitle(), userId, username, 
-                           2, "编辑文章", ipAddress, userAgent);
-
-            // 如果分类发生变化，更新分类文章数量
-            if (!existingArticle.getCategoryId().equals(request.getCategoryId())) {
-                updateCategoryArticleCount(existingArticle.getCategoryId());
-                updateCategoryArticleCount(request.getCategoryId());
-            }
-
+            recordUserAction(userId, username, id, "UPDATE", 
+                "更新文章：" + article.getTitle(), ipAddress, userAgent);
+            
             // 获取更新后的文章
             Article updatedArticle = articleMapper.selectById(id);
-            ArticleDTO articleDTO = convertToDTO(updatedArticle, category.getName());
+            ArticleDTO articleDTO = convertToDTO(updatedArticle);
+            
             return Result.success(articleDTO);
-
+            
         } catch (Exception e) {
             log.error("更新文章失败", e);
-            return Result.error(ResultCode.OPERATION_ERROR, "更新文章失败: " + e.getMessage());
+            return Result.error("更新文章失败：" + e.getMessage());
         }
     }
 
@@ -172,33 +144,27 @@ public class ArticleServiceImpl implements ArticleService {
     @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> deleteArticle(Long id, Long userId, String username, String ipAddress, String userAgent) {
         try {
+            // 检查文章是否存在
             Article article = articleMapper.selectById(id);
             if (article == null) {
-                return Result.error(ResultCode.DATA_NOT_FOUND, "文章不存在");
+                return Result.error("文章不存在");
             }
-
-            // 检查权限（只有作者可以删除）
-            if (!article.getAuthorId().equals(userId)) {
-                return Result.error(ResultCode.FORBIDDEN, "无权限删除此文章");
-            }
-
+            
+            // 删除文章
             int result = articleMapper.deleteById(id);
-            if (result <= 0) {
-                return Result.error(ResultCode.OPERATION_ERROR, "删除文章失败");
+            
+            if (result > 0) {
+                // 记录用户操作
+                recordUserAction(userId, username, id, "DELETE", 
+                    "删除文章：" + article.getTitle(), ipAddress, userAgent);
+                return Result.success(true);
+            } else {
+                return Result.error("删除失败");
             }
-
-            // 记录用户操作
-            recordUserAction(id, article.getTitle(), userId, username, 
-                           4, "删除文章", ipAddress, userAgent);
-
-            // 更新分类文章数量
-            updateCategoryArticleCount(article.getCategoryId());
-
-            return Result.success(true);
-
+            
         } catch (Exception e) {
             log.error("删除文章失败", e);
-            return Result.error(ResultCode.OPERATION_ERROR, "删除文章失败: " + e.getMessage());
+            return Result.error("删除文章失败：" + e.getMessage());
         }
     }
 
@@ -206,56 +172,139 @@ public class ArticleServiceImpl implements ArticleService {
     @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> publishArticle(Long id, Long userId, String username, String ipAddress, String userAgent) {
         try {
+            // 检查文章是否存在
             Article article = articleMapper.selectById(id);
             if (article == null) {
-                return Result.error(ResultCode.DATA_NOT_FOUND, "文章不存在");
+                return Result.error("文章不存在");
             }
-
-            // 检查权限（只有作者可以发布）
-            if (!article.getAuthorId().equals(userId)) {
-                return Result.error(ResultCode.FORBIDDEN, "无权限发布此文章");
-            }
-
+            
             // 更新文章状态为已发布
-            Article updateArticle = new Article();
-            updateArticle.setId(id);
-            updateArticle.setStatus(1);
-            updateArticle.setUpdateBy(userId);
-
-            int result = articleMapper.updateById(updateArticle);
-            if (result <= 0) {
-                return Result.error(ResultCode.OPERATION_ERROR, "发布文章失败");
+            article.setStatus(1);
+            article.setPublishTime(LocalDateTime.now());
+            article.setUpdateTime(LocalDateTime.now());
+            
+            int result = articleMapper.updateById(article);
+            
+            if (result > 0) {
+                // 记录用户操作
+                recordUserAction(userId, username, id, "PUBLISH", 
+                    "发布文章：" + article.getTitle(), ipAddress, userAgent);
+                return Result.success(true);
+            } else {
+                return Result.error("发布失败");
             }
-
-            // 记录用户操作
-            recordUserAction(id, article.getTitle(), userId, username, 
-                           3, "发布文章", ipAddress, userAgent);
-
-            return Result.success(true);
-
+            
         } catch (Exception e) {
             log.error("发布文章失败", e);
-            return Result.error(ResultCode.OPERATION_ERROR, "发布文章失败: " + e.getMessage());
+            return Result.error("发布文章失败：" + e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<Page<ArticleDTO>> getArticleList(Integer page, Integer size, Integer status, Long categoryId, Long authorId) {
+        try {
+            Page<Article> articlePage = new Page<>(page, size);
+            
+            LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(status != null, Article::getStatus, status)
+                       .eq(categoryId != null, Article::getCategoryId, categoryId)
+                       .eq(authorId != null, Article::getAuthorId, authorId)
+                       .orderByDesc(Article::getCreateTime);
+            
+            Page<Article> result = articleMapper.selectPage(articlePage, queryWrapper);
+            
+            // 获取所有分类信息用于转换
+            List<Long> categoryIds = result.getRecords().stream()
+                .map(Article::getCategoryId)
+                .distinct()
+                .collect(Collectors.toList());
+            
+            Map<Long, String> categoryMap = categoryIds.stream()
+                .collect(Collectors.toMap(
+                    id -> id,
+                    id -> {
+                        ArticleCategory category = categoryMapper.selectById(id);
+                        return category != null ? category.getName() : "未分类";
+                    }
+                ));
+            
+            // 转换为DTO
+            List<ArticleDTO> dtoList = result.getRecords().stream()
+                .map(article -> {
+                    ArticleDTO dto = convertToDTO(article);
+                    dto.setCategoryName(categoryMap.get(article.getCategoryId()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+            
+            Page<ArticleDTO> dtoPage = new Page<>(result.getCurrent(), result.getSize(), result.getTotal());
+            dtoPage.setRecords(dtoList);
+            
+            return Result.success(dtoPage);
+            
+        } catch (Exception e) {
+            log.error("获取文章列表失败", e);
+            return Result.error("获取文章列表失败：" + e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<Long> getArticleCountByUserId(Long userId) {
+        try {
+            LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(Article::getAuthorId, userId);
+            
+            Long count = articleMapper.selectCount(queryWrapper);
+            return Result.success(count);
+            
+        } catch (Exception e) {
+            log.error("获取用户文章数量失败", e);
+            return Result.error("获取用户文章数量失败：" + e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<Page<ArticleDTO>> getArticlesByUserId(Long userId, Integer page, Integer size) {
+        try {
+            Page<Article> articlePage = new Page<>(page, size);
+            
+            LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(Article::getAuthorId, userId)
+                       .orderByDesc(Article::getCreateTime);
+            
+            Page<Article> result = articleMapper.selectPage(articlePage, queryWrapper);
+            
+            // 转换为DTO
+            List<ArticleDTO> dtoList = result.getRecords().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+            
+            Page<ArticleDTO> dtoPage = new Page<>(result.getCurrent(), result.getSize(), result.getTotal());
+            dtoPage.setRecords(dtoList);
+            
+            return Result.success(dtoPage);
+            
+        } catch (Exception e) {
+            log.error("获取用户文章列表失败", e);
+            return Result.error("获取用户文章列表失败：" + e.getMessage());
         }
     }
 
     /**
      * 记录用户操作
      */
-    private void recordUserAction(Long articleId, String articleTitle, Long userId, String username,
-                                 Integer actionType, String actionDesc, String ipAddress, String userAgent) {
+    private void recordUserAction(Long userId, String username, Long articleId, String actionType, String actionDesc, String ipAddress, String userAgent) {
         try {
             UserArticle userArticle = new UserArticle();
             userArticle.setUserId(userId);
             userArticle.setUsername(username);
             userArticle.setArticleId(articleId);
-            userArticle.setArticleTitle(articleTitle);
             userArticle.setActionType(actionType);
             userArticle.setActionDesc(actionDesc);
             userArticle.setIpAddress(ipAddress);
             userArticle.setUserAgent(userAgent);
             userArticle.setActionTime(LocalDateTime.now());
-
+            
             userArticleMapper.insert(userArticle);
         } catch (Exception e) {
             log.error("记录用户操作失败", e);
@@ -263,31 +312,20 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     /**
-     * 更新分类文章数量
-     */
-    private void updateCategoryArticleCount(Long categoryId) {
-        try {
-            LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(Article::getCategoryId, categoryId)
-                   .eq(Article::getStatus, 1); // 只统计已发布的文章
-            Long count = articleMapper.selectCount(wrapper);
-
-            ArticleCategory category = new ArticleCategory();
-            category.setId(categoryId);
-            category.setArticleCount(count);
-            categoryMapper.updateById(category);
-        } catch (Exception e) {
-            log.error("更新分类文章数量失败", e);
-        }
-    }
-
-    /**
      * 转换为DTO
      */
-    private ArticleDTO convertToDTO(Article article, String categoryName) {
+    private ArticleDTO convertToDTO(Article article) {
         ArticleDTO dto = new ArticleDTO();
         BeanUtil.copyProperties(article, dto);
-        dto.setCategoryName(categoryName);
+        
+        // 获取分类名称
+        if (article.getCategoryId() != null) {
+            ArticleCategory category = categoryMapper.selectById(article.getCategoryId());
+            if (category != null) {
+                dto.setCategoryName(category.getName());
+            }
+        }
+        
         return dto;
     }
 } 
