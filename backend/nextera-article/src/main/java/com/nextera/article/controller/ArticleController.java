@@ -30,39 +30,39 @@ public class ArticleController {
 
     @PostMapping
     @Operation(summary = "创建文章", description = "创建新的文章")
-    public Result<ArticleDTO> createArticle(@Validated @RequestBody ArticleCreateRequest request) {
+    public Result<Integer> createArticle(@Validated @RequestBody ArticleCreateRequest request) {
         log.info("创建文章请求: {}", request);
-        return articleService.createArticle(request);
+        return Result.success(articleService.createArticle(request));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "获取文章详情", description = "根据ID获取文章详细信息")
     public Result<ArticleDTO> getArticleById(@PathVariable @Parameter(description = "文章ID") Long id) {
         log.info("获取文章详情: {}", id);
-        return articleService.getArticleById(id);
+        return Result.success(articleService.getArticleById(id));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "更新文章", description = "更新文章信息")
-    public Result<ArticleDTO> updateArticle(
+    public Result<Boolean> updateArticle(
             @PathVariable @Parameter(description = "文章ID") Long id,
             @Validated @RequestBody ArticleCreateRequest request) {
         log.info("更新文章: {}, 请求: {}", id, request);
-        return articleService.updateArticle(id, request);
+        return Result.success(articleService.updateArticle(id, request));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "删除文章", description = "删除指定的文章")
     public Result<Boolean> deleteArticle(@PathVariable @Parameter(description = "文章ID") Long id) {
         log.info("删除文章: {}", id);
-        return articleService.deleteArticle(id);
+        return Result.success(articleService.deleteArticle(id));
     }
 
     @PostMapping("/{id}/publish")
     @Operation(summary = "发布文章", description = "发布指定的文章")
     public Result<Boolean> publishArticle(@PathVariable @Parameter(description = "文章ID") Long id) {
         log.info("发布文章: {}", id);
-        return articleService.publishArticle(id);
+        return Result.success(articleService.publishArticle(id));
     }
 
     @GetMapping("/list")
@@ -75,7 +75,7 @@ public class ArticleController {
             @RequestParam(required = false) @Parameter(description = "作者ID") Long authorId) {
         log.info("查询文章列表: page={}, size={}, status={}, categoryId={}, authorId={}", 
                 page, size, status, categoryId, authorId);
-        return articleService.getArticleList(page, size, status, categoryId, authorId);
+        return Result.success(articleService.getArticleList(page, size, status, categoryId, authorId));
     }
 
     @GetMapping("/health")

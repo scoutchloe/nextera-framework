@@ -7,7 +7,7 @@ import com.nextera.user.dto.UserInfoDTO;
  *
  * @author Nextera
  */
-public interface UserService {
+public interface LocalUserService {
 
     /**
      * 根据用户ID获取用户信息
@@ -16,6 +16,13 @@ public interface UserService {
      * @return 用户信息
      */
     UserInfoDTO getUserInfo(Long userId);
+
+    /**
+     * 根据用户ID 更新最后登录时间
+     * @param userId
+     * @return
+     */
+    boolean updateLastLoginTime(Long userId);
 
 
     /**

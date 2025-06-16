@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: nextera-user
+
+# 服务器配置
+server:
+  port: 8081
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.nextera: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" 

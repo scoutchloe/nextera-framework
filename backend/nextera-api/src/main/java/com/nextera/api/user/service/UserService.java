@@ -43,20 +43,4 @@ public interface UserService {
      */
     Result<Boolean> existsUser(Long userId);
 
-    /**
-     * 更新用户最后登录时间
-     *
-     * @param userId 用户ID
-     * @return 更新结果
-     */
-    Result<Boolean> updateLastLoginTime(Long userId);
-
-    /**
-     * 检查用户权限
-     *
-     * @param userId 用户ID
-     * @param permission 权限代码
-     * @return 是否有权限
-     */
-    Result<Boolean> hasPermission(Long userId, String permission);
 } 

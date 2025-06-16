@@ -13,7 +13,7 @@ spring:
         watch:
           enabled: true
         watch-delay: 1000
-      #        group: DEFAULT_GROUP
+        group: DEFAULT_GROUP
       config:
         server-addr: localhost:8848
         namespace: 253e9832-53e9-43eb-bfae-4c311a7ce0fa

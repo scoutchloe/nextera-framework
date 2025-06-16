@@ -2,7 +2,7 @@ package com.nextera.user.controller;
 
 import com.nextera.common.core.Result;
 import com.nextera.user.dto.UserInfoDTO;
-import com.nextera.user.service.UserService;
+import com.nextera.user.service.LocalUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,19 +28,19 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class UserController {
 
-    private final UserService userService;
+    private final LocalUserService localUserService;
 
     @GetMapping("/{userId}")
     @Operation(summary = "获取用户信息", description = "根据用户ID获取用户详细信息")
     public Result<UserInfoDTO> getUserInfo(@Parameter(description = "用户ID") @PathVariable Long userId) {
-        return Result.success(userService.getUserInfo(userId));
+        return Result.success(localUserService.getUserInfo(userId));
     }
 
 
     @DeleteMapping("/{userId}")
     @Operation(summary = "删除用户", description = "软删除用户")
     public Result<Integer> deleteUser(@Parameter(description = "用户ID") @PathVariable Long userId) {
-        return Result.success(userService.deleteUser(userId));
+        return Result.success(localUserService.deleteUser(userId));
     }
 
     @GetMapping("/health")
