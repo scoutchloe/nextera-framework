@@ -35,6 +35,27 @@ spring:
                 - Path=/api/auth/**
               filters:
                 - StripPrefix=2
+            # knife4j文档服务路由 - 用户服务API文档
+            - id: knife4j-user-docs
+              uri: lb://nextera-user
+              predicates:
+                - Path=/*/api-docs/nextera-user
+              filters:
+                - StripPrefix=0
+            # knife4j文档服务路由 - 文章服务API文档
+            - id: knife4j-article-docs
+              uri: lb://nextera-article
+              predicates:
+                - Path=/*/api-docs/nextera-article
+              filters:
+                - StripPrefix=0
+            # knife4j文档服务路由 - 认证服务API文档
+            - id: knife4j-auth-docs
+              uri: lb://nextera-auth
+              predicates:
+                - Path=/*/api-docs/nextera-auth
+              filters:
+                - StripPrefix=0
           globalcors:
             cors-configurations:
               '[/**]':
@@ -87,7 +108,11 @@ knife4j:
     discover:
       enabled: true
       # 指定版本号(Swagger2|OpenAPI3)
-      version : openapi3
+      version: openapi3
       # 需要排除的微服务(eg:网关服务)
       excluded-services:
         - nextera-gateway
+    basic:
+      password: nextera
+      username: admin
+      enable: true

@@ -20,6 +20,8 @@ public interface AuthService {
      */
     Result<LoginResponse> login(LoginRequest loginRequest);
 
+    Result<LoginResponse> loginInner(com.nextera.api.auth.dto.LoginRequest loginRequest);
+
     /**
      * 用户注册
      *
@@ -27,6 +29,7 @@ public interface AuthService {
      * @return 注册结果
      */
     Result<Void> register(RegisterRequest registerRequest);
+    Result<Void> registerInner(com.nextera.api.auth.dto.RegisterRequest registerRequest);
 
     /**
      * 刷新Token

@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class Article {
 
     @Schema(description = "文章ID")
-    @TableId(value = "id", type = IdType.ASSIGN_ID)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     @Schema(description = "文章标题")

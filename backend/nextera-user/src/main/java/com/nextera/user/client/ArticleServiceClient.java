@@ -1,6 +1,5 @@
 package com.nextera.user.client;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nextera.api.article.dto.ArticleCreateRequest;
 import com.nextera.api.article.dto.ArticleDTO;
 import com.nextera.api.article.service.ArticleService;

@@ -3,25 +3,21 @@ package com.nextera.user.feign;
 import com.nextera.api.auth.dto.AuthTokenDTO;
 import com.nextera.api.auth.dto.LoginRequest;
 import com.nextera.api.auth.dto.RegisterRequest;
-import com.nextera.api.auth.service.AuthService;
 import com.nextera.common.core.Result;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.dubbo.config.annotation.DubboReference;
-import org.springframework.stereotype.Component;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 认证服务客户端
- * 通过Dubbo调用认证服务
+ * 通过OpenFeign调用认证服务
  *
  * @author nextera
  * @since 2025-06-16
  */
-@Slf4j
-@Component
-public class AuthServiceClient {
-
-    @DubboReference(version = "1.0.0", timeout = 5000, retries = 0)
-    private AuthService authService;
+@FeignClient(name = "nextera-auth", 
+// url = "http://localhost:7083", 
+path = "/internal/auth", fallback = AuthServiceClientFallback.class)
+public interface AuthServiceClient {
 
     /**
      * 用户登录
@@ -29,15 +25,8 @@ public class AuthServiceClient {
      * @param loginRequest 登录请求
      * @return 认证令牌
      */
-    public Result<AuthTokenDTO> login(LoginRequest loginRequest) {
-        try {
-            log.info("调用认证服务进行用户登录，用户名: {}", loginRequest.getUsername());
-            return authService.login(loginRequest);
-        } catch (Exception e) {
-            log.error("调用认证服务登录失败", e);
-            return Result.error("登录服务暂时不可用，请稍后重试");
-        }
-    }
+    @PostMapping("/login")
+    Result<AuthTokenDTO> login(@RequestBody LoginRequest loginRequest);
 
     /**
      * 用户注册
@@ -45,15 +34,8 @@ public class AuthServiceClient {
      * @param registerRequest 注册请求
      * @return 注册结果
      */
-    public Result<Void> register(RegisterRequest registerRequest) {
-        try {
-            log.info("调用认证服务进行用户注册，用户名: {}", registerRequest.getUsername());
-            return authService.register(registerRequest);
-        } catch (Exception e) {
-            log.error("调用认证服务注册失败", e);
-            return Result.error("注册服务暂时不可用，请稍后重试");
-        }
-    }
+    @PostMapping("/register")
+    Result<Void> register(@RequestBody RegisterRequest registerRequest);
 
     /**
      * 用户登出
@@ -61,15 +43,8 @@ public class AuthServiceClient {
      * @param token 访问令牌
      * @return 登出结果
      */
-    public Result<Void> logout(String token) {
-        try {
-            log.info("调用认证服务进行用户登出");
-            return authService.logout(token);
-        } catch (Exception e) {
-            log.error("调用认证服务登出失败", e);
-            return Result.error("登出服务暂时不可用，请稍后重试");
-        }
-    }
+    @PostMapping("/logout")
+    Result<Void> logout(@RequestParam("token") String token);
 
     /**
      * 刷新令牌
@@ -77,15 +52,8 @@ public class AuthServiceClient {
      * @param refreshToken 刷新令牌
      * @return 新的认证令牌
      */
-    public Result<AuthTokenDTO> refreshToken(String refreshToken) {
-        try {
-            log.info("调用认证服务刷新令牌");
-            return authService.refreshToken(refreshToken);
-        } catch (Exception e) {
-            log.error("调用认证服务刷新令牌失败", e);
-            return Result.error("令牌刷新服务暂时不可用，请稍后重试");
-        }
-    }
+    @PostMapping("/refresh")
+    Result<AuthTokenDTO> refreshToken(@RequestParam("refreshToken") String refreshToken);
 
     /**
      * 验证令牌
@@ -93,30 +61,16 @@ public class AuthServiceClient {
      * @param token 访问令牌
      * @return 验证结果
      */
-    public Result<AuthTokenDTO> validateToken(String token) {
-        try {
-            log.debug("调用认证服务验证令牌");
-            return authService.validateToken(token);
-        } catch (Exception e) {
-            log.error("调用认证服务验证令牌失败", e);
-            return Result.error("令牌验证服务暂时不可用");
-        }
-    }
+    @GetMapping("/validate")
+    Result<AuthTokenDTO> validateToken(@RequestParam("token") String token);
 
     /**
      * 获取验证码
      *
      * @return 验证码信息
      */
-    public Result<String> getCaptcha() {
-        try {
-            log.info("调用认证服务获取验证码");
-            return authService.getCaptcha();
-        } catch (Exception e) {
-            log.error("调用认证服务获取验证码失败", e);
-            return Result.error("验证码服务暂时不可用，请稍后重试");
-        }
-    }
+    @GetMapping("/captcha")
+    Result<String> getCaptcha();
 
     /**
      * 发送邮箱验证码
@@ -124,15 +78,8 @@ public class AuthServiceClient {
      * @param email 邮箱地址
      * @return 发送结果
      */
-    public Result<Void> sendEmailCode(String email) {
-        try {
-            log.info("调用认证服务发送邮箱验证码，邮箱: {}", email);
-            return authService.sendEmailCode(email);
-        } catch (Exception e) {
-            log.error("调用认证服务发送邮箱验证码失败", e);
-            return Result.error("邮箱验证码发送服务暂时不可用，请稍后重试");
-        }
-    }
+    @PostMapping("/email/send")
+    Result<Void> sendEmailCode(@RequestParam("email") String email);
 
     /**
      * 重置密码
@@ -142,15 +89,10 @@ public class AuthServiceClient {
      * @param newPassword 新密码
      * @return 重置结果
      */
-    public Result<Void> resetPassword(String email, String emailCode, String newPassword) {
-        try {
-            log.info("调用认证服务重置密码，邮箱: {}", email);
-            return authService.resetPassword(email, emailCode, newPassword);
-        } catch (Exception e) {
-            log.error("调用认证服务重置密码失败", e);
-            return Result.error("密码重置服务暂时不可用，请稍后重试");
-        }
-    }
+    @PostMapping("/password/reset")
+    Result<Void> resetPassword(@RequestParam("email") String email, 
+                              @RequestParam("emailCode") String emailCode, 
+                              @RequestParam("newPassword") String newPassword);
 
     /**
      * 修改密码
@@ -160,15 +102,10 @@ public class AuthServiceClient {
      * @param newPassword 新密码
      * @return 修改结果
      */
-    public Result<Void> changePassword(Long userId, String oldPassword, String newPassword) {
-        try {
-            log.info("调用认证服务修改密码，用户ID: {}", userId);
-            return authService.changePassword(userId, oldPassword, newPassword);
-        } catch (Exception e) {
-            log.error("调用认证服务修改密码失败", e);
-            return Result.error("密码修改服务暂时不可用，请稍后重试");
-        }
-    }
+    @PostMapping("/password/change")
+    Result<Void> changePassword(@RequestParam("userId") Long userId, 
+                               @RequestParam("oldPassword") String oldPassword, 
+                               @RequestParam("newPassword") String newPassword);
 
     /**
      * 检查用户权限
@@ -177,15 +114,9 @@ public class AuthServiceClient {
      * @param permission 权限标识
      * @return 是否有权限
      */
-    public Result<Boolean> hasPermission(Long userId, String permission) {
-        try {
-            log.debug("调用认证服务检查用户权限，用户ID: {}, 权限: {}", userId, permission);
-            return authService.hasPermission(userId, permission);
-        } catch (Exception e) {
-            log.error("调用认证服务检查权限失败", e);
-            return Result.error("权限检查服务暂时不可用");
-        }
-    }
+    @GetMapping("/permission/check")
+    Result<Boolean> hasPermission(@RequestParam("userId") Long userId, 
+                                 @RequestParam("permission") String permission);
 
     /**
      * 检查用户角色
@@ -194,13 +125,7 @@ public class AuthServiceClient {
      * @param role 角色标识
      * @return 是否有角色
      */
-    public Result<Boolean> hasRole(Long userId, String role) {
-        try {
-            log.debug("调用认证服务检查用户角色，用户ID: {}, 角色: {}", userId, role);
-            return authService.hasRole(userId, role);
-        } catch (Exception e) {
-            log.error("调用认证服务检查角色失败", e);
-            return Result.error("角色检查服务暂时不可用");
-        }
-    }
+    @GetMapping("/role/check")
+    Result<Boolean> hasRole(@RequestParam("userId") Long userId, 
+                           @RequestParam("role") String role);
 } 

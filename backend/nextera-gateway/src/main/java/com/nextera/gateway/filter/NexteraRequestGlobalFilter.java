@@ -1,6 +1,8 @@
 package com.nextera.gateway.filter;
 
 import com.nextera.common.constant.CommonConstants;
+import com.nextera.gateway.utils.Knife4jUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -23,6 +25,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.a
  *
  * @author Nextera
  */
+@Slf4j
 public class NexteraRequestGlobalFilter implements GlobalFilter, Ordered {
 
 	/**
@@ -45,10 +48,15 @@ public class NexteraRequestGlobalFilter implements GlobalFilter, Ordered {
 		// 2. 重写StripPrefix
 		addOriginalRequestUrl(exchange, request.getURI());
 		String rawPath = request.getURI().getRawPath();
-		String newPath = "/" + Arrays.stream(StringUtils.tokenizeToStringArray(rawPath, "/"))
-			.skip(1L)
-			.collect(Collectors.joining("/"));
-
+		log.debug("Processing requestFilter rawPath: {}", rawPath);
+		String newPath = rawPath;
+		// 3. 对knife4j 文档不处理.
+		if(!Knife4jUtil.isKnife4jResource(rawPath)) {
+			 newPath = "/" + Arrays.stream(StringUtils.tokenizeToStringArray(rawPath, "/"))
+//					.skip(1L)
+					.collect(Collectors.joining("/"));
+		}
+		log.debug("Processing requestFilter newPath: {}", newPath);
 		ServerHttpRequest newRequest = request.mutate().path(newPath).build();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, newRequest.getURI());
 

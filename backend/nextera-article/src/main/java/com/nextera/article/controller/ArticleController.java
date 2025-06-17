@@ -78,7 +78,7 @@ public class ArticleController {
         return Result.success(articleService.getArticleList(page, size, status, categoryId, authorId));
     }
 
-    @GetMapping("/health")
+    @GetMapping("/health2")
     @Operation(summary = "健康检查", description = "检查服务是否正常运行")
     public Result<String> health() {
         return Result.success("Article service is healthy");

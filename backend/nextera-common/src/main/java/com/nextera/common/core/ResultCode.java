@@ -33,6 +33,7 @@ public enum ResultCode {
 
     // 认证相关状态码
     LOGIN_FAILED(20001, "登录失败"),
+    LOGIN_AUTH_FAILED(20000, "用户名或者密码错误,登录失败"),
     TOKEN_INVALID(20002, "Token无效"),
     TOKEN_EXPIRED(20003, "Token已过期"),
     REFRESH_TOKEN_INVALID(20004, "刷新Token无效"),

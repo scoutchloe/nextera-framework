@@ -42,7 +42,9 @@ public class UserArticleController {
     @Operation(summary = "用户创建文章", description = "用户通过RPC调用文章服务创建文章，同时记录用户操作")
     public Result<Integer> createArticle(
             @Valid @RequestBody ArticleCreateRequest request,
-            @RequestParam @Parameter(description = "用户ID") Long userId,
+            @Parameter(description = "用户ID")
+            @RequestParam(name="userId")  Long userId,
+//            @RequestParam Long userId,
             HttpServletRequest httpRequest) {
         
         log.info("接收用户创建文章请求，用户ID: {}, 文章标题: {}", userId, request.getTitle());

@@ -38,7 +38,8 @@ public class SecurityConfig {
                 // 允许访问的路径
                 .requestMatchers(
                     "/auth/login",
-                    "/auth/register", 
+                    "/internal/auth/login",
+                    "/auth/register",
                     "/auth/captcha",
                     "/auth/captcha/**",
                     "/auth/health",

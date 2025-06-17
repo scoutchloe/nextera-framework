@@ -26,10 +26,10 @@ public class NexteraDiscoveryClientRouteDefinitionLocator {
     }
 
     @Value("${server.port}")
-    private static String serverPort;
+    private  String serverPort;
 
     @PostConstruct
     public void init() {
-        System.out.println(serverPort);
+        System.out.println("gateway port:" +  serverPort);
     }
 }

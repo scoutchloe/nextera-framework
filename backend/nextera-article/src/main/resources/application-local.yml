@@ -32,7 +32,7 @@ dubbo:
     name: dubbo
     port: 20882
   registry:
-    address: nacos://localhost:8848?namespace=nextera&group=DEFAULT_GROUP
+    address: nacos://localhost:8848?namespace=253e9832-53e9-43eb-bfae-4c311a7ce0fa&group=DEFAULT_GROUP
     username: nacos
     password: nacos
   provider:

@@ -80,6 +80,12 @@
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
 
+        <!-- LoadBalancer -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
         <!-- Dubbo -->
         <dependency>
             <groupId>org.apache.dubbo</groupId>
@@ -153,6 +159,12 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+<!--                    for @RequestParam  idea compiler->java compiler additional.. 添加 -parameters-->
+                    <compilerArguments>
+                        <arg>-parameters</arg>
+                    </compilerArguments>
+                </configuration>
             </plugin>
         </plugins>
     </build>

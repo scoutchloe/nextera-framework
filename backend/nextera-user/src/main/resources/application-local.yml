@@ -25,8 +25,9 @@ spring:
 # Dubbo配置
 dubbo:
   application:
-    name: nextera-user
+    name: dubbo-nextera-user
   protocol:
+    host: 192.168.56.1
     name: dubbo
     port: 20881
   registry:
@@ -60,11 +61,15 @@ feign:
       default:
         connect-timeout: 5000
         read-timeout: 5000
+      nextera-auth:
+        url: http://localhost:7083
   compression:
     request:
       enabled: true
     response:
       enabled: true
+  hystrix:
+    enabled: true
 
 # 日志配置
 logging:

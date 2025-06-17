@@ -1,7 +1,9 @@
 package com.nextera.user.controller;
 
+import com.nextera.api.user.service.UserService;
 import com.nextera.common.core.Result;
 import com.nextera.user.dto.UserInfoDTO;
+import com.nextera.user.feign.AuthServiceClient;
 import com.nextera.user.service.LocalUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,6 +32,8 @@ public class UserController {
 
     private final LocalUserService localUserService;
 
+    private final AuthServiceClient authServiceClient;
+
     @GetMapping("/{userId}")
     @Operation(summary = "获取用户信息", description = "根据用户ID获取用户详细信息")
     public Result<UserInfoDTO> getUserInfo(@Parameter(description = "用户ID") @PathVariable Long userId) {
@@ -47,5 +51,23 @@ public class UserController {
     @Operation(summary = "健康检查", description = "用户服务健康检查接口")
     public Result<String> health() {
         return Result.success("User Service is running");
+    }
+
+    /**
+     * 测试认证服务连接
+     */
+    @GetMapping("/test-auth")
+    @Operation(summary = "测试认证服务连接", description = "测试OpenFeign调用认证服务")
+    public Result<String> testAuthService() {
+        try {
+            Result<String> captchaResult = authServiceClient.getCaptcha();
+            if (captchaResult.isSuccess()) {
+                return Result.success("认证服务连接正常");
+            } else {
+                return Result.error("认证服务连接失败: " + captchaResult.getMessage());
+            }
+        } catch (Exception e) {
+            return Result.error("认证服务连接异常: " + e.getMessage());
+        }
     }
 } 
