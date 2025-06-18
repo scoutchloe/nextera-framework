@@ -1,0 +1,137 @@
+server:
+  port: 7777
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: management-nextera
+  profiles:
+    active: dev
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+
+  # ????
+  web:
+    resources:
+      static-locations: classpath:/static/
+      add-mappings: true
+  # Async
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 20
+        queue-capacity: 100
+        keep-alive: 60s
+      thread-name-prefix: nextera-task-
+
+
+  # ???
+  datasource:
+    dynamic:
+      primary: master
+      strict: false
+      datasource:
+        master:
+          url: jdbc:mysql://127.0.0.1:3306/nextera_manage?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+          username: root
+          password: nextera123
+          driver-class-name: com.mysql.cj.jdbc.Driver
+        article:
+          url: jdbc:mysql://127.0.0.1:3306/nextera_article?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+          username: root
+          password: nextera123
+          driver-class-name: com.mysql.cj.jdbc.Driver
+        user:
+          url: jdbc:mysql://127.0.0.1:3306/nextera_user?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+          username: root
+          password: nextera123
+          driver-class-name: com.mysql.cj.jdbc.Driver
+
+    #    url: jdbc:mysql://127.0.0.1:3306/managementlightHouse?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    #    #url: jdbc:mysql://127.0.0.1:3306/lightHouse?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    #    username: root
+    #    password: 123456
+    #    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    hikari:
+      pool-name: HikariCP
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+# MyBatis-Plus
+mybatis-plus:
+  # mapper xml
+  mapper-locations: classpath:mapper/**.xml
+  # MyBatis
+  type-aliases-package: com.nextera.managenextera.entity
+  configuration:
+    # camel
+    map-underscore-to-camel-case: true
+    # log
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      # id type
+      id-type: auto
+
+
+# ??
+cors:
+  allowed-origins: "*"
+  allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+  allowed-headers: "*"
+  allow-credentials: true
+
+
+# JWT
+jwt:
+  secret: mySecretKey1234567890123456789012345678900
+  expiration: 86400000  # 24???????
+
+# ????
+schedule:
+  enabled: true
+
+
+
+# knife4j api doc
+knife4j:
+  production: false
+  basic:
+    enable: true
+    username: admin
+    password: nextera123
+  enable: true
+  setting:
+    enable-open-api: true
+    language: zh_cn
+    enable-footer: false
+    enable-swagger-models: false
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  level:
+    root: INFO
+    com.nextera: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    root: WARN
+    com.nextera: INFO

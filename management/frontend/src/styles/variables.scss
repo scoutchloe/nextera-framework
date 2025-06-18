@@ -1,0 +1,115 @@
+// 基础色彩系统
+:root {
+  // 主题色
+  --primary-color: #3b82f6;
+  --primary-light: #60a5fa;
+  --primary-dark: #1d4ed8;
+  
+  // 成功色
+  --success-color: #10b981;
+  --success-light: #34d399;
+  --success-dark: #047857;
+  
+  // 警告色
+  --warning-color: #f59e0b;
+  --warning-light: #fbbf24;
+  --warning-dark: #d97706;
+  
+  // 错误色
+  --error-color: #ef4444;
+  --error-light: #f87171;
+  --error-dark: #dc2626;
+  
+  // 信息色
+  --info-color: #06b6d4;
+  --info-light: #22d3ee;
+  --info-dark: #0891b2;
+  
+  // 中性色 - 亮色模式
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --text-disabled: #d1d5db;
+  
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-quaternary: #e5e7eb;
+  
+  --border-color: #e5e7eb;
+  --border-light: #f3f4f6;
+  --border-dark: #d1d5db;
+  
+  // 阴影
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  // 科技感渐变
+  --gradient-tech: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-cyber: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-neon: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  
+  // 圆角
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  // 字体大小
+  --font-xs: 12px;
+  --font-sm: 14px;
+  --font-md: 16px;
+  --font-lg: 18px;
+  --font-xl: 20px;
+  --font-2xl: 24px;
+  --font-3xl: 30px;
+  
+  // 间距
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+}
+
+// 暗色模式
+[data-theme='dark'] {
+  // 中性色 - 暗色模式
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-tertiary: #9ca3af;
+  --text-disabled: #6b7280;
+  
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #374151;
+  --bg-quaternary: #4b5563;
+  
+  --border-color: #374151;
+  --border-light: #4b5563;
+  --border-dark: #6b7280;
+  
+  // 科技感暗色渐变
+  --gradient-tech: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-cyber: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);
+  --gradient-neon: linear-gradient(135deg, #00c9ff 0%, #92fe9d 100%);
+}
+
+// SCSS 变量导出
+$primary-color: var(--primary-color);
+$success-color: var(--success-color);
+$warning-color: var(--warning-color);
+$error-color: var(--error-color);
+$info-color: var(--info-color);
+
+$text-primary: var(--text-primary);
+$text-secondary: var(--text-secondary);
+$bg-primary: var(--bg-primary);
+$bg-secondary: var(--bg-secondary);
+
+$border-color: var(--border-color);
+$radius-md: var(--radius-md);
+$space-md: var(--space-md); 
