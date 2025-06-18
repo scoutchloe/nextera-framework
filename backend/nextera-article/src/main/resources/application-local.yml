@@ -99,3 +99,29 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - com.nextera.article.controller
+
+# Seata分布式事务配置
+seata:
+  enabled: true
+  application-id: nextera-article
+  tx-service-group: nextera-article-group
+  enable-auto-data-source-proxy: true
+  use-jdk-proxy: false
+  config:
+    type: nacos
+    nacos:
+      server-addr: localhost:8848
+      namespace: 253e9832-53e9-43eb-bfae-4c311a7ce0fa
+      group: SEATA_GROUP
+      dataId: seataServer.properties
+      username: nacos
+      password: nacos
+  registry:
+    type: nacos
+    nacos:
+      application: seata-server
+      server-addr: localhost:8848
+      namespace: 253e9832-53e9-43eb-bfae-4c311a7ce0fa
+      group: SEATA_GROUP
+      username: nacos
+      password: nacos

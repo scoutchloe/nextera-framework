@@ -30,13 +30,7 @@ nextera:
     expiration: 24
     refresh-expiration: 7
 
-# 日志配置
-logging:
-  level:
-    com.nextera: debug
-    org.springframework.security: debug
-  pattern:
-    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n'
+# 日志配置由 logback-spring.xml 管理
 
 # 管理端点
 management:

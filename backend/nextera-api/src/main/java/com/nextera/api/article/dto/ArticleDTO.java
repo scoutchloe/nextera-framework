@@ -53,7 +53,7 @@ public class ArticleDTO implements Serializable {
     /**
      * 作者用户名
      */
-    private String authorUsername;
+    private String authorName;
 
     /**
      * 文章状态：0-草稿，1-已发布，2-已下架
@@ -90,15 +90,6 @@ public class ArticleDTO implements Serializable {
      */
     private String coverImage;
 
-    /**
-     * SEO关键词
-     */
-    private String seoKeywords;
-
-    /**
-     * SEO描述
-     */
-    private String seoDescription;
 
     /**
      * 创建时间

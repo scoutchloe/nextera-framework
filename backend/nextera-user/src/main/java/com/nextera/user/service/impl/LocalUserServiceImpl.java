@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -35,11 +37,36 @@ public class LocalUserServiceImpl implements LocalUserService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean updateLastLoginTime(Long userId) {
-        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(User::getId, userId);
-        updateWrapper.set(User::getLastLoginTime, LocalDateTime.now());
-        return new LambdaUpdateChainWrapper<>(userMapper, updateWrapper).update();
+        try {
+            LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.eq(User::getId, userId);
+            updateWrapper.set(User::getLastLoginTime, LocalDateTime.now());
+            boolean result = new LambdaUpdateChainWrapper<>(userMapper, updateWrapper).update();
+            log.debug("更新用户最后活动时间，用户ID: {}, 结果: {}", userId, result);
+            return result;
+        } catch (Exception e) {
+            log.error("更新用户最后活动时间失败，用户ID: {}", userId, e);
+            throw e; // 重新抛出异常，确保本地事务回滚
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean restoreLastLoginTime(Long userId, LocalDateTime lastLoginTime) {
+        try {
+            LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.eq(User::getId, userId);
+            updateWrapper.set(User::getLastLoginTime, lastLoginTime);
+            boolean result = new LambdaUpdateChainWrapper<>(userMapper, updateWrapper).update();
+            log.info("TCC补偿 - 恢复用户最后活动时间，用户ID: {}, 恢复时间: {}, 结果: {}", 
+                    userId, lastLoginTime, result);
+            return result;
+        } catch (Exception e) {
+            log.error("TCC补偿 - 恢复用户最后活动时间失败，用户ID: {}", userId, e);
+            throw e;
+        }
     }
 
 

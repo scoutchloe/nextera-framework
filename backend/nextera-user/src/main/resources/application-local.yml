@@ -101,3 +101,44 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - com.nextera.user.controller
+
+# 文章服务配置
+article:
+  service:
+    url: http://localhost:7082
+
+# Seata分布式事务配置
+seata:
+  enabled: true
+  application-id: nextera-user
+  tx-service-group: nextera-user-group
+  enable-auto-data-source-proxy: true
+  use-jdk-proxy: false
+  config:
+    type: nacos
+    nacos:
+      server-addr: localhost:8848
+      namespace: 253e9832-53e9-43eb-bfae-4c311a7ce0fa
+      group: SEATA_GROUP
+      dataId: seataServer.properties
+      username: nacos
+      password: nacos
+  registry:
+    type: nacos
+    nacos:
+      application: seata-server
+      server-addr: localhost:8848
+      namespace: 253e9832-53e9-43eb-bfae-4c311a7ce0fa
+      group: SEATA_GROUP
+      username: nacos
+      password: nacos
+  service:
+    vgroup-mapping:
+#      default_tx_group: default
+      nextera-article-group: default
+      nextera-user-group: default
+tcc:
+  retry:
+    enabled: true           # 启用重试控制
+    max-retry-count: 3      # 最大重试3次
+    retry-interval: 1000    # 重试间隔1秒

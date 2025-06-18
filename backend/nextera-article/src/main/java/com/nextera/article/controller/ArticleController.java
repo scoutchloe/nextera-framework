@@ -37,7 +37,7 @@ public class ArticleController {
 
     @GetMapping("/{id}")
     @Operation(summary = "获取文章详情", description = "根据ID获取文章详细信息")
-    public Result<ArticleDTO> getArticleById(@PathVariable @Parameter(description = "文章ID") Long id) {
+    public Result<ArticleDTO> getArticleById(@PathVariable(name = "id") @Parameter(description = "文章ID") Long id) {
         log.info("获取文章详情: {}", id);
         return Result.success(articleService.getArticleById(id));
     }
@@ -45,7 +45,7 @@ public class ArticleController {
     @PutMapping("/{id}")
     @Operation(summary = "更新文章", description = "更新文章信息")
     public Result<Boolean> updateArticle(
-            @PathVariable @Parameter(description = "文章ID") Long id,
+            @PathVariable(name = "id") @Parameter(description = "文章ID") Long id,
             @Validated @RequestBody ArticleCreateRequest request) {
         log.info("更新文章: {}, 请求: {}", id, request);
         return Result.success(articleService.updateArticle(id, request));

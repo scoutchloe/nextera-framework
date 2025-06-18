@@ -24,6 +24,14 @@ public interface LocalUserService {
      */
     boolean updateLastLoginTime(Long userId);
 
+    /**
+     * 恢复用户最后登录时间到指定时间（用于TCC补偿）
+     * @param userId 用户ID
+     * @param lastLoginTime 要恢复到的时间
+     * @return 更新结果
+     */
+    boolean restoreLastLoginTime(Long userId, java.time.LocalDateTime lastLoginTime);
+
 
     /**
      * 删除用户

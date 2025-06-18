@@ -37,7 +37,9 @@ public interface LocalArticleService {
      * @param request 更新请求
      * @return 更新结果
      */
-    boolean updateArticle(Long id, ArticleCreateRequest request);
+    boolean updateArticle(Long id, com.nextera.article.dto.ArticleCreateRequest request);
+
+    boolean updateArticleInner(Long id, com.nextera.api.article.dto.ArticleCreateRequest request);
 
     /**
      * 删除文章

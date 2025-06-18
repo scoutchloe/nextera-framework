@@ -5,7 +5,6 @@ import com.nextera.api.user.dto.UserDTO;
 import com.nextera.api.user.service.UserService;
 import com.nextera.common.core.Result;
 import com.nextera.user.dto.UserInfoDTO;
-import com.nextera.user.entity.User;
 import com.nextera.user.service.LocalUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,19 +54,15 @@ public class DubboUserServiceImpl implements UserService {
 
     @Override
     public Result<Boolean> existsUser(Long userId) {
-        return null;
+        try {
+            UserInfoDTO user = localUserservice.getUserInfo(userId);
+            return Result.success(user != null);
+        } catch (Exception e) {
+            log.error("检查用户是否存在失败", e);
+            return Result.error("检查用户是否存在失败：" + e.getMessage());
+        }
     }
 
-
-    /**
-     * 转换为DTO
-     */
-    private UserDTO convertToDTO(User user) {
-        UserDTO dto = new UserDTO();
-        BeanUtil.copyProperties(user, dto);
-        // 不返回敏感信息如密码
-        return dto;
-    }
 
     private UserDTO convertToDTO(UserInfoDTO user) {
         UserDTO dto = new UserDTO();

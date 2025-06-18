@@ -25,6 +25,18 @@ public interface ArticleService {
     Result<Integer> createArticle(ArticleCreateRequest request, Long userId, String username, String ipAddress, String userAgent);
 
     /**
+     * 更新文章
+     *
+     * @param articleId 文章ID
+     * @param request 文章更新请求
+     * @param userId 用户ID
+     * @param username 用户名
+     * @param ipAddress IP地址
+     * @param userAgent 用户代理
+     * @return 更新结果
+     */
+    Result<Boolean> updateArticle(Long articleId, ArticleCreateRequest request, Long userId, String username, String ipAddress, String userAgent);
+    /**
      * 根据ID获取文章详情
      *
      * @param id 文章ID

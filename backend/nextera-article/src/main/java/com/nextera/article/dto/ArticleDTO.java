@@ -63,12 +63,6 @@ public class ArticleDTO {
     @Schema(description = "封面图片URL")
     private String coverImage;
 
-    @Schema(description = "SEO关键词")
-    private String seoKeywords;
-
-    @Schema(description = "SEO描述")
-    private String seoDescription;
-
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 

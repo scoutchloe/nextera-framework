@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 测试环境简化的日志配置 -->
+    
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 抑制Nacos相关的日志 -->
+    <logger name="com.alibaba.nacos" level="ERROR" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+    
+    <logger name="com.alibaba.cloud" level="ERROR" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <logger name="com.alibaba.nacos.client.config" level="ERROR" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+    
+    <logger name="com.alibaba.nacos.client.naming" level="ERROR" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- 测试相关的日志级别 -->
+    <logger name="com.nextera" level="DEBUG"/>
+    <logger name="org.springframework.boot.test" level="INFO"/>
+    <logger name="org.springframework.test" level="INFO"/>
+    <logger name="org.testcontainers" level="INFO"/>
+    <logger name="redis.embedded" level="WARN"/>
+
+    <!-- Root logger -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration> 

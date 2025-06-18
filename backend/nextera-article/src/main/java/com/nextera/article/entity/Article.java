@@ -42,8 +42,8 @@ public class Article {
     private Long authorId;
 
     @Schema(description = "作者用户名")
-    @TableField("author_username")
-    private String authorUsername;
+    @TableField("author_name")
+    private String authorName;
 
     @Schema(description = "文章状态：0-草稿，1-已发布，2-已下架")
     @TableField("status")
@@ -77,13 +77,6 @@ public class Article {
     @TableField("cover_image")
     private String coverImage;
 
-    @Schema(description = "SEO关键词")
-    @TableField("seo_keywords")
-    private String seoKeywords;
-
-    @Schema(description = "SEO描述")
-    @TableField("seo_description")
-    private String seoDescription;
 
     @Schema(description = "创建时间")
     @TableField(value = "create_time", fill = FieldFill.INSERT)

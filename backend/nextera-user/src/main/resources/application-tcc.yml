@@ -1,0 +1,27 @@
+# TCC重试控制配置示例
+# 将此配置添加到您的 application.yml 或 application-local.yml 文件中
+
+tcc:
+  retry:
+    # 是否启用重试控制，默认为true
+    enabled: true
+    # 最大重试次数，默认为3次
+    max-retry-count: 3
+    # 重试间隔时间（毫秒），默认1秒
+    retry-interval: 1000
+
+# Seata相关配置（如果需要）
+seata:
+  # TCC事务超时时间（毫秒）
+  transaction:
+    timeout: 300000  # 5分钟
+  client:
+    rm:
+      # 资源管理器重试间隔
+      async-commit-buffer-limit: 10000
+      report-retry-count: 5
+      table-meta-check-enable: false
+    tm:
+      # 事务管理器重试次数
+      commit-retry-count: 3
+      rollback-retry-count: 3 

@@ -27,6 +27,7 @@ spring:
   # 重要配置
   config:
     import:
+      - optional:nacos:nextera-common.yml
       - optional:nacos:application-${spring.profiles.active}.yml
       - optional:nacos:${spring.application.name}-${spring.profiles.active}.yml
   nacos:
