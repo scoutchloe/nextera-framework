@@ -5,13 +5,20 @@ server:
 
 spring:
   application:
-    name: management-nextera
+    name: manage-nextera
   profiles:
     active: dev
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
     default-property-inclusion: non_null
+    
+  # 文件上传配置
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+      enabled: true
 
   # ????
   web:
@@ -80,6 +87,9 @@ mybatis-plus:
     db-config:
       # id type
       id-type: auto
+      logic-delete-field: is_deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
 
 
 # ??
@@ -114,6 +124,21 @@ knife4j:
     language: zh_cn
     enable-footer: false
     enable-swagger-models: false
+
+# 文件上传配置
+file:
+  upload:
+    path: ./uploads  # 文件上传路径
+    max-size: 10485760  # 最大文件大小 10MB
+
+# 日志配置
+logging:
+  level:
+    com.nextera.managenextera: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
 ---
 spring:
   config:

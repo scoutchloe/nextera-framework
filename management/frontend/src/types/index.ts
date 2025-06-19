@@ -33,7 +33,8 @@ export interface Admin extends BaseEntity {
   phone?: string
   avatar?: string
   status: number
-  role: number
+  role: number // 兼容单个角色ID的显示
+  roleIds?: number[] // 兼容多角色系统
   lastLoginTime?: string
   lastLoginIp?: string
   isDeleted?: number

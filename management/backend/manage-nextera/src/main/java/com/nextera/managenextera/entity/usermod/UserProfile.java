@@ -1,4 +1,4 @@
-package com.nextera.managenextera.entity.user;
+package com.nextera.managenextera.entity.usermod;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;

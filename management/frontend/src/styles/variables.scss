@@ -73,6 +73,91 @@
   --space-lg: 24px;
   --space-xl: 32px;
   --space-2xl: 48px;
+  
+  // 响应式布局相关变量
+  --sidebar-width: 240px;
+  --sidebar-collapsed-width: 56px;
+  --header-height: 64px;
+  --footer-height: 50px;
+  
+  // 断点变量
+  --breakpoint-xs: 320px;
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1440px;
+  --breakpoint-3xl: 1920px;
+  
+  // 容器最大宽度
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+  
+  // Z-index 层级
+  --z-dropdown: 1000;
+  --z-overlay: 1000;
+  --z-sidebar: 1001;
+  --z-header: 999;
+  --z-modal: 1050;
+  --z-tooltip: 1060;
+  
+  // 过渡动画
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  --transition-bounce: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// 移动端变量调整
+@media (max-width: 767px) {
+  :root {
+    --sidebar-width: 260px;
+    --header-height: 56px;
+    --footer-height: 40px;
+    --space-xs: 6px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 20px;
+  }
+}
+
+// 小屏幕移动端变量调整
+@media (max-width: 479px) {
+  :root {
+    --sidebar-width: 100vw;
+    --space-sm: 6px;
+    --space-md: 10px;
+    --space-lg: 14px;
+  }
+}
+
+// 平板设备变量调整
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --sidebar-width: 240px;
+    --space-lg: 20px;
+    --space-xl: 28px;
+  }
+}
+
+// 中等桌面设备变量调整
+@media (min-width: 1024px) and (max-width: 1279px) {
+  :root {
+    --sidebar-width: 180px;
+  }
+}
+
+// 大屏幕设备变量调整
+@media (min-width: 1920px) {
+  :root {
+    --space-lg: 32px;
+    --space-xl: 40px;
+    --space-2xl: 64px;
+  }
 }
 
 // 暗色模式
@@ -98,7 +183,7 @@
   --gradient-neon: linear-gradient(135deg, #00c9ff 0%, #92fe9d 100%);
 }
 
-// SCSS 变量导出
+// SCSS 变量导出（兼容性）
 $primary-color: var(--primary-color);
 $success-color: var(--success-color);
 $warning-color: var(--warning-color);
@@ -112,4 +197,116 @@ $bg-secondary: var(--bg-secondary);
 
 $border-color: var(--border-color);
 $radius-md: var(--radius-md);
-$space-md: var(--space-md); 
+$space-md: var(--space-md);
+
+// 断点 SCSS 变量
+$breakpoint-xs: 320px;
+$breakpoint-sm: 480px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1440px;
+$breakpoint-3xl: 1920px;
+
+// 响应式 Mixins
+@mixin mobile-only {
+  @media (max-width: #{$breakpoint-md - 1px}) {
+    @content;
+  }
+}
+
+@mixin tablet-only {
+  @media (min-width: #{$breakpoint-md}) and (max-width: #{$breakpoint-lg - 1px}) {
+    @content;
+  }
+}
+
+@mixin desktop-only {
+  @media (min-width: #{$breakpoint-lg}) {
+    @content;
+  }
+}
+
+@mixin tablet-up {
+  @media (min-width: #{$breakpoint-md}) {
+    @content;
+  }
+}
+
+@mixin desktop-up {
+  @media (min-width: #{$breakpoint-lg}) {
+    @content;
+  }
+}
+
+@mixin large-desktop-up {
+  @media (min-width: #{$breakpoint-xl}) {
+    @content;
+  }
+}
+
+@mixin xl-desktop-up {
+  @media (min-width: #{$breakpoint-3xl}) {
+    @content;
+  }
+}
+
+// 容器 Mixin
+@mixin container($max-width: var(--container-xl)) {
+  max-width: $max-width;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+  
+  @include mobile-only {
+    padding-left: var(--space-sm);
+    padding-right: var(--space-sm);
+  }
+}
+
+// 文本省略 Mixin
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin text-ellipsis-multiline($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// 清除浮动 Mixin
+@mixin clearfix {
+  &::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
+
+// 居中 Mixin
+@mixin center($width: null, $height: null) {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  
+  @if not $width and not $height {
+    transform: translate(-50%, -50%);
+  } @else if $width and $height {
+    width: $width;
+    height: $height;
+    margin: (-($height / 2)) 0 0 (-($width / 2));
+  } @else if not $height {
+    width: $width;
+    margin-left: -($width / 2);
+    transform: translateY(-50%);
+  } @else {
+    height: $height;
+    margin-top: -($height / 2);
+    transform: translateX(-50%);
+  }
+} 

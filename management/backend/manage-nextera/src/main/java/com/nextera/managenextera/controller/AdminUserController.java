@@ -6,6 +6,7 @@ import com.nextera.managenextera.annotation.OperationLog;
 import com.nextera.managenextera.common.Result;
 import com.nextera.managenextera.dto.AdminUserDto;
 import com.nextera.managenextera.entity.Admin;
+import com.nextera.managenextera.entity.SysRole;
 import com.nextera.managenextera.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -23,12 +24,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * 管理员用户管理控制器
  */
 @Slf4j
 @RestController
-@RequestMapping("/admin-user")
+@RequestMapping("/system/admin")
 @RequiredArgsConstructor
 @Tag(name = "管理员用户管理", description = "管理员用户CRUD操作相关接口")
 public class AdminUserController {
@@ -37,7 +42,7 @@ public class AdminUserController {
 
     @GetMapping("/page")
     @Operation(summary = "分页查询管理员用户", description = "分页查询管理员用户列表")
-    @OperationLog(module = "", type = OperationLog.OperationType.QUERY, description = "查询管理员用户")
+    @OperationLog(module = "用户管理", type = OperationLog.OperationType.QUERY, description = "查询管理员用户")
     public Result<IPage<AdminUserDto>> getAdminUserPage(
             @Parameter(description = "页码") @RequestParam(defaultValue = "1") Integer current,
             @Parameter(description = "每页大小") @RequestParam(defaultValue = "10") Integer size,
@@ -143,5 +148,49 @@ public class AdminUserController {
     public Result<Boolean> checkPhone(@RequestParam String phone) {
         boolean exists = adminService.existsByPhone(phone);
         return Result.success(!exists); // 返回true表示手机号可用
+    }
+
+    @GetMapping("/{id}/roles")
+    @Operation(summary = "获取管理员角色", description = "获取管理员的角色列表")
+    @OperationLog(module = "用户管理", type = OperationLog.OperationType.QUERY, description = "查询管理员角色")
+    public Result<List<SysRole>> getAdminRoles(
+            @Parameter(description = "用户ID") @PathVariable Long id) {
+
+        List<SysRole> roles = adminService.getAdminRoles(id);
+        return Result.success(roles);
+    }
+
+    @PutMapping("/{id}/roles")
+    @Operation(summary = "分配管理员角色", description = "为管理员分配角色")
+    @OperationLog(module = "用户管理", type = OperationLog.OperationType.UPDATE, description = "分配管理员角色")
+    public Result<String> assignAdminRoles(
+            @Parameter(description = "用户ID") @PathVariable Long id,
+            @RequestBody Map<String, Object> requestBody) {
+
+        // 安全地处理类型转换，支持Integer和Long
+        @SuppressWarnings("unchecked")
+        List<Object> roleIdObjects = (List<Object>) requestBody.get("roleIds");
+        
+        if (roleIdObjects == null || roleIdObjects.isEmpty()) {
+            return Result.error("角色ID列表不能为空");
+        }
+        
+        List<Long> roleIds = roleIdObjects.stream()
+                .map(obj -> {
+                    return switch (obj) {
+                        case Integer i -> i.longValue();
+                        case Long l -> l;
+                        case Number number -> number.longValue();
+                        default -> throw new IllegalArgumentException("无效的角色ID类型: " + obj.getClass());
+                    };
+                })
+                .collect(Collectors.toList());
+        
+        boolean success = adminService.assignAdminRoles(id, roleIds);
+        if (success) {
+            return Result.success("角色分配成功");
+        } else {
+            return Result.error("角色分配失败");
+        }
     }
 } 
