@@ -114,8 +114,8 @@
         </el-table-column>
         <el-table-column prop="status" label="操作状态" width="100" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'danger'">
-              {{ row.status === 1 ? '成功' : '失败' }}
+            <el-tag :type="row.status === 'success' ? 'success' : 'danger'">
+              {{ row.status === 'success' ? '成功' : '失败' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -177,8 +177,8 @@
           <el-descriptions-item label="IP地址">{{ currentLog.ip }}</el-descriptions-item>
           <el-descriptions-item label="操作地点">{{ currentLog.location }}</el-descriptions-item>
           <el-descriptions-item label="操作状态">
-            <el-tag :type="currentLog.status === 1 ? 'success' : 'danger'">
-              {{ currentLog.status === 1 ? '成功' : '失败' }}
+            <el-tag :type="currentLog.status === 'success' ? 'success' : 'danger'">
+              {{ currentLog.status === 'success' ? '成功' : '失败' }}
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="耗时">{{ currentLog.costTime }}ms</el-descriptions-item>

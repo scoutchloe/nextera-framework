@@ -187,32 +187,51 @@ const handleLogin = async () => {
   loading.value = true
   
   try {
-    console.log('开始调用用户Store登录方法，参数:', loginForm)
+    console.log('开始调用登录API，参数:', loginForm)
 
-    // 使用用户Store的login方法
-    await userStore.login({
-      username: loginForm.username,
-      password: loginForm.password
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: loginForm.username,
+        password: loginForm.password
+      })
     })
     
-    console.log('登录成功，用户Store状态已更新')
+    console.log('登录API响应状态:', response.status)
+    const result = await response.json()
+    console.log('登录API响应数据:', result)
     
-    ElNotification({
-      title: '登录成功',
-      message: '欢迎回来！正在跳转到主页...',
-      type: 'success',
-      position: 'top-right'
-    })
-    
-    // 跳转到主页
-    setTimeout(() => {
-      console.log('准备跳转到主页')
-      router.push('/')
-    }, 1000)
+    if (response.ok && result.code === 200) {
+      console.log('登录成功，准备保存用户信息和跳转')
+      console.log('登录响应数据:', result.data)
+      
+      // 设置用户store的登录信息
+      userStore.setLoginInfo(result.data)
+      console.log('用户Store状态更新完成')
+      
+      ElNotification({
+        title: '登录成功',
+        message: '欢迎回来！正在跳转到主页...',
+        type: 'success',
+        position: 'top-right'
+      })
+      
+      // 跳转到主页
+      setTimeout(() => {
+        console.log('准备跳转到主页')
+        router.push('/')
+      }, 1000)
+      
+    } else {
+      ElMessage.error(result.message || '登录失败')
+    }
 
   } catch (error) {
-    console.error('登录失败:', error)
-    ElMessage.error(error.message || '登录失败，请检查用户名和密码')
+    console.error('登录API调用错误:', error)
+    ElMessage.error('登录API调用失败')
   } finally {
     loading.value = false
   }

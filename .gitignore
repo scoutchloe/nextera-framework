@@ -11,7 +11,6 @@ start.sh
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
-uploads/
 
 # Package Files #
 *.jar

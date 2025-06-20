@@ -1,4 +1,4 @@
-package com.nextera.managenextera.entity.articlemod;
+package com.nextera.managenextera.entity.article;
 
 import com.baomidou.mybatisplus.annotation.*;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,7 +22,7 @@ public class ArticleCategory {
     private Long id;
 
     @Schema(description = "分类名称")
-    @TableField("category_name")
+    @TableField("name")
     private String name;
 
     @Schema(description = "分类描述")
@@ -41,10 +41,17 @@ public class ArticleCategory {
     @TableField("status")
     private Integer status;
 
-    @Schema(description = "分类颜色")
-    @TableField("cover_image")
-    private String coverImage;
+    @Schema(description = "分类图标")
+    @TableField("icon")
+    private String icon;
 
+    @Schema(description = "分类颜色")
+    @TableField("color")
+    private String color;
+
+    @Schema(description = "文章数量")
+    @TableField("article_count")
+    private Long articleCount;
 
     @Schema(description = "创建时间")
     @TableField(value = "create_time", fill = FieldFill.INSERT)
@@ -56,11 +63,11 @@ public class ArticleCategory {
 
     @Schema(description = "创建者ID")
     @TableField(value = "create_by", fill = FieldFill.INSERT)
-    private String createBy;
+    private Long createBy;
 
     @Schema(description = "更新者ID")
     @TableField(value = "update_by", fill = FieldFill.INSERT_UPDATE)
-    private String updateBy;
+    private Long updateBy;
 
     @Schema(description = "是否删除：0-否，1-是")
     @TableField("is_deleted")

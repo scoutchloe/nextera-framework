@@ -9,7 +9,6 @@ import com.nextera.managenextera.dto.LoginRequest;
 import com.nextera.managenextera.dto.LoginResponse;
 import com.nextera.managenextera.dto.SysPermissionDTO;
 import com.nextera.managenextera.entity.Admin;
-import com.nextera.managenextera.entity.AdminRole;
 import com.nextera.managenextera.entity.SysPermission;
 import com.nextera.managenextera.entity.SysRole;
 import com.nextera.managenextera.mapper.AdminMapper;
@@ -131,7 +130,6 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         IPage<AdminUserDto> dtoPage = adminPage.convert(admin -> {
             AdminUserDto dto = new AdminUserDto();
             BeanUtils.copyProperties(admin, dto);
-            dto.setPassword("");
             return dto;
         });
         
@@ -374,49 +372,5 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                     return permission;
                 })
                 .collect(Collectors.toList());
-    }
-    
-    @Override
-    public List<SysRole> getAdminRoles(Long adminId) {
-        log.info("获取管理员角色，管理员ID: {}", adminId);
-        return roleService.getRolesByAdminId(adminId);
-    }
-    
-    @Override
-    @org.springframework.transaction.annotation.Transactional
-    public boolean assignAdminRoles(Long adminId, List<Long> roleIds) {
-        log.info("分配管理员角色，管理员ID: {}, 角色IDs: {}", adminId, roleIds);
-        
-        // 检查管理员是否存在
-        Admin admin = getById(adminId);
-        if (admin == null) {
-            throw new RuntimeException("管理员不存在");
-        }
-        
-        // 删除原有的角色关联
-        LambdaQueryWrapper<AdminRole> deleteWrapper = new LambdaQueryWrapper<>();
-        deleteWrapper.eq(AdminRole::getAdminId, adminId);
-        adminRoleService.remove(deleteWrapper);
-        log.info("删除管理员 {} 的原有角色关联", adminId);
-        
-        // 添加新的角色关联
-        if (roleIds != null && !roleIds.isEmpty()) {
-            List<AdminRole> adminRoles = roleIds.stream()
-                    .map(roleId -> {
-                        AdminRole adminRole = new AdminRole();
-                        adminRole.setAdminId(adminId);
-                        adminRole.setRoleId(roleId);
-                        adminRole.setCreateTime(LocalDateTime.now());
-                        return adminRole;
-                    })
-                    .collect(Collectors.toList());
-            
-            boolean result = adminRoleService.saveBatch(adminRoles);
-            log.info("为管理员 {} 分配新角色，结果: {}", adminId, result);
-            return result;
-        }
-        
-        log.info("管理员 {} 未分配任何角色", adminId);
-        return true;
     }
 } 

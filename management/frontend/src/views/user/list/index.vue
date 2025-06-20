@@ -23,14 +23,6 @@
             @keyup.enter="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="昵称">
-          <el-input
-            v-model="searchForm.nickname"
-            placeholder="请输入昵称"
-            clearable
-            @keyup.enter="handleSearch"
-          />
-        </el-form-item>
         <el-form-item label="邮箱">
           <el-input
             v-model="searchForm.email"
@@ -85,13 +77,17 @@
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100" align="center">
           <template #default="{ row }">
-            <el-tag v-if="row.status === 0" type="success">正常</el-tag>
-            <el-tag v-else type="danger">禁用</el-tag>
+            <el-switch
+              v-model="row.status"
+              :active-value="1"
+              :inactive-value="0"
+              @change="handleStatusChange(row)"
+            />
           </template>
         </el-table-column>
         <el-table-column prop="lastLoginTime" label="最后登录" width="180" />
         <el-table-column prop="createTime" label="注册时间" width="180" />
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button
               type="primary"
@@ -100,20 +96,6 @@
               @click="handleEdit(row)"
             >
               编辑
-            </el-button>
-            <el-button
-              :type="row.status === 0 ? 'warning' : 'success'"
-              link
-              @click="handleStatusChange(row)"
-            >
-              {{ row.status === 0 ? '禁用' : '启用' }}
-            </el-button>
-            <el-button
-              type="info"
-              link
-              @click="handleResetPassword(row)"
-            >
-              重置密码
             </el-button>
             <el-button
               type="danger"
@@ -147,7 +129,6 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Refresh, Edit, Delete } from '@element-plus/icons-vue'
-import { userApi } from '@/api/system'
 
 // 响应式数据
 const loading = ref(false)
@@ -155,7 +136,6 @@ const loading = ref(false)
 // 搜索表单
 const searchForm = reactive({
   username: '',
-  nickname: '',
   email: '',
   status: ''
 })
@@ -168,7 +148,44 @@ const pagination = reactive({
 })
 
 // 表格数据
-const tableData = ref<any[]>([])
+const tableData = ref([
+  {
+    id: 1,
+    username: 'user001',
+    nickname: '张三',
+    email: 'zhangsan@example.com',
+    phone: '13800138000',
+    avatar: null,
+    gender: 1,
+    status: 1,
+    lastLoginTime: '2024-01-01 10:00:00',
+    createTime: '2023-06-01 12:00:00'
+  },
+  {
+    id: 2,
+    username: 'user002',
+    nickname: '李四',
+    email: 'lisi@example.com',
+    phone: '13800138001',
+    avatar: null,
+    gender: 2,
+    status: 1,
+    lastLoginTime: '2024-01-01 09:30:00',
+    createTime: '2023-07-15 15:30:00'
+  },
+  {
+    id: 3,
+    username: 'user003',
+    nickname: '王五',
+    email: 'wangwu@example.com',
+    phone: '13800138002',
+    avatar: null,
+    gender: 1,
+    status: 0,
+    lastLoginTime: '2023-12-20 16:45:00',
+    createTime: '2023-08-20 10:15:00'
+  }
+])
 
 // 方法
 const handleSearch = () => {
@@ -179,34 +196,18 @@ const handleSearch = () => {
 const handleReset = () => {
   Object.assign(searchForm, {
     username: '',
-    nickname: '',
     email: '',
     status: ''
   })
   handleSearch()
 }
 
-const loadTableData = async () => {
-  try {
-    loading.value = true
-    const params = {
-      current: pagination.current,
-      size: pagination.pageSize,
-      ...searchForm
-    }
-    
-    const response = await userApi.getUserList(params)
-    
-    if (response.code === 200) {
-      tableData.value = response.data.records
-      pagination.total = response.data.total
-    }
-  } catch (error) {
-    console.error('加载用户列表失败:', error)
-    ElMessage.error('加载用户列表失败')
-  } finally {
+const loadTableData = () => {
+  loading.value = true
+  setTimeout(() => {
+    pagination.total = tableData.value.length
     loading.value = false
-  }
+  }, 500)
 }
 
 const handleAdd = () => {
@@ -217,66 +218,27 @@ const handleEdit = (row: any) => {
   ElMessage.info(`编辑用户 ${row.username} 功能开发中...`)
 }
 
-const handleDelete = async (row: any) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除用户 "${row.username}" 吗？`,
-      '删除确认',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    
-    await userApi.deleteUser(row.id)
-    
+const handleDelete = (row: any) => {
+  ElMessageBox.confirm(
+    `确定要删除用户 "${row.username}" 吗？`,
+    '删除确认',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(() => {
     ElMessage.success('删除成功')
     loadTableData()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除用户失败:', error)
-      ElMessage.error('删除用户失败')
-    }
-  }
+  }).catch(() => {
+    // 取消删除
+  })
 }
 
-const handleStatusChange = async (row: any) => {
-  try {
-    const newStatus = row.status === 0 ? 1 : 0
-    
-    await userApi.updateUserStatus(row.id, newStatus)
-    
-    row.status = newStatus
-    row.statusName = newStatus === 0 ? '正常' : '禁用'
-    ElMessage.success(newStatus === 0 ? '启用成功' : '禁用成功')
-  } catch (error) {
-    console.error('更新用户状态失败:', error)
-    ElMessage.error('更新用户状态失败')
-  }
-}
-
-const handleResetPassword = async (row: any) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要重置用户 "${row.username}" 的密码吗？重置后密码为：123456`,
-      '重置密码确认',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    
-    await userApi.resetUserPassword(row.id, '123456')
-    
-    ElMessage.success('密码重置成功，新密码为：123456')
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('重置密码失败:', error)
-      ElMessage.error('重置密码失败')
-    }
-  }
+const handleStatusChange = (row: any) => {
+  setTimeout(() => {
+    ElMessage.success(row.status ? '启用成功' : '禁用成功')
+  }, 200)
 }
 
 const handleSizeChange = (size: number) => {

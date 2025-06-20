@@ -6,12 +6,7 @@
         <p>管理文章标签信息</p>
       </div>
       <div class="header-actions">
-        <el-button 
-          v-permission="'article:tag:add'"
-          type="primary" 
-          :icon="Plus" 
-          @click="handleAdd"
-        >
+        <el-button type="primary" :icon="Plus" @click="handleAdd">
           新增标签
         </el-button>
       </div>
@@ -51,7 +46,6 @@
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button
-              v-permission="'article:tag:edit'"
               type="primary"
               link
               :icon="Edit"
@@ -60,7 +54,6 @@
               编辑
             </el-button>
             <el-button
-              v-permission="'article:tag:delete'"
               type="danger"
               link
               :icon="Delete"

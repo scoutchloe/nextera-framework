@@ -6,43 +6,10 @@
         <p>管理文章分类信息</p>
       </div>
       <div class="header-actions">
-        <el-button 
-          v-permission="'article:category:add'"
-          type="primary" 
-          :icon="Plus" 
-          @click="handleAdd"
-        >
+        <el-button type="primary" :icon="Plus" @click="handleAdd">
           新增分类
         </el-button>
       </div>
-    </div>
-
-    <!-- 搜索栏 -->
-    <div class="search-bar">
-      <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="分类名称">
-          <el-input
-            v-model="searchForm.name"
-            placeholder="请输入分类名称"
-            clearable
-            @keyup.enter="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
-            <el-option label="启用" :value="1" />
-            <el-option label="禁用" :value="0" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" :icon="Search" @click="handleSearch">
-            搜索
-          </el-button>
-          <el-button :icon="Refresh" @click="handleReset">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
     </div>
 
     <!-- 数据表格 -->
@@ -56,46 +23,33 @@
       >
         <el-table-column prop="name" label="分类名称" width="200" />
         <el-table-column prop="description" label="描述" min-width="300" show-overflow-tooltip />
-        <el-table-column prop="parentName" label="父分类" width="150" align="center">
-          <template #default="{ row }">
-            <el-tag v-if="row.parentName" type="info" size="small">{{ row.parentName }}</el-tag>
-            <span v-else class="text-muted">顶级分类</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="sortOrder" label="排序" width="100" align="center" />
+        <el-table-column prop="articleCount" label="文章数量" width="120" align="center" />
+        <el-table-column prop="sort" label="排序" width="100" align="center" />
         <el-table-column prop="status" label="状态" width="100" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'danger'">
-              {{ row.status === 1 ? '启用' : '禁用' }}
-            </el-tag>
+            <el-switch
+              v-model="row.status"
+              :active-value="1"
+              :inactive-value="0"
+              @change="handleStatusChange(row)"
+            />
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button
-              v-permission="'article:category:edit'"
               type="primary"
               link
-              size="small"
+              :icon="Edit"
               @click="handleEdit(row)"
             >
               编辑
             </el-button>
             <el-button
-              v-permission="'article:category:edit'"
-              :type="row.status === 1 ? 'warning' : 'success'"
-              link
-              size="small"
-              @click="handleStatusChange(row)"
-            >
-              {{ row.status === 1 ? '禁用' : '启用' }}
-            </el-button>
-            <el-button
-              v-permission="'article:category:delete'"
               type="danger"
               link
-              size="small"
+              :icon="Delete"
               @click="handleDelete(row)"
             >
               删除
@@ -103,83 +57,64 @@
           </template>
         </el-table-column>
       </el-table>
-
-      <!-- 分页 -->
-      <div class="pagination-container">
-        <el-pagination
-          :current-page="pagination.current"
-          :page-size="pagination.pageSize"
-          :total="pagination.total"
-          :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
-      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Edit, Delete, Search, Refresh } from '@element-plus/icons-vue'
-import { categoryApi } from '@/api/system'
+import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 
 // 响应式数据
 const loading = ref(false)
 
-// 搜索表单
-const searchForm = reactive({
-  name: '',
-  status: ''
-})
-
-// 分页数据
-const pagination = reactive({
-  current: 1,
-  pageSize: 10,
-  total: 0
-})
-
 // 表格数据
-const tableData = ref<any[]>([])
+const tableData = ref([
+  {
+    id: 1,
+    name: '技术分享',
+    description: '分享前端、后端等技术相关文章',
+    articleCount: 25,
+    sort: 1,
+    status: 1,
+    createTime: '2023-01-01 10:00:00'
+  },
+  {
+    id: 2,
+    name: '产品介绍',
+    description: '介绍公司产品功能和特色',
+    articleCount: 12,
+    sort: 2,
+    status: 1,
+    createTime: '2023-01-02 14:30:00'
+  },
+  {
+    id: 3,
+    name: '公司动态',
+    description: '发布公司最新动态和新闻',
+    articleCount: 8,
+    sort: 3,
+    status: 1,
+    createTime: '2023-01-03 09:15:00'
+  },
+  {
+    id: 4,
+    name: '行业资讯',
+    description: '分享行业相关资讯和趋势',
+    articleCount: 5,
+    sort: 4,
+    status: 0,
+    createTime: '2023-01-04 16:45:00'
+  }
+])
 
 // 方法
-const handleSearch = () => {
-  pagination.current = 1
-  loadTableData()
-}
-
-const handleReset = () => {
-  Object.assign(searchForm, {
-    name: '',
-    status: ''
-  })
-  handleSearch()
-}
-
-const loadTableData = async () => {
-  try {
-    loading.value = true
-    const params = {
-      current: pagination.current,
-      size: pagination.pageSize,
-      ...searchForm
-    }
-    
-    const response = await categoryApi.getCategoryList(params)
-    
-    if (response.code === 200) {
-      tableData.value = response.data.records
-      pagination.total = response.data.total
-    }
-  } catch (error) {
-    console.error('加载分类列表失败:', error)
-    ElMessage.error('加载分类列表失败')
-  } finally {
+const loadTableData = () => {
+  loading.value = true
+  setTimeout(() => {
     loading.value = false
-  }
+  }, 500)
 }
 
 const handleAdd = () => {
@@ -190,52 +125,32 @@ const handleEdit = (row: any) => {
   ElMessage.info(`编辑分类 "${row.name}" 功能开发中...`)
 }
 
-const handleDelete = async (row: any) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除分类 "${row.name}" 吗？`,
-      '删除确认',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    
-    await categoryApi.deleteCategory(row.id)
-    
+const handleDelete = (row: any) => {
+  if (row.articleCount > 0) {
+    ElMessage.warning('该分类下还有文章，无法删除')
+    return
+  }
+  
+  ElMessageBox.confirm(
+    `确定要删除分类 "${row.name}" 吗？`,
+    '删除确认',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(() => {
     ElMessage.success('删除成功')
     loadTableData()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除分类失败:', error)
-      ElMessage.error('删除分类失败')
-    }
-  }
+  }).catch(() => {
+    // 取消删除
+  })
 }
 
-const handleStatusChange = async (row: any) => {
-  try {
-    const newStatus = row.status === 1 ? 0 : 1
-    
-    await categoryApi.updateCategoryStatus(row.id, newStatus)
-    
-    row.status = newStatus
-    ElMessage.success(newStatus === 1 ? '启用成功' : '禁用成功')
-  } catch (error) {
-    console.error('更新分类状态失败:', error)
-    ElMessage.error('更新分类状态失败')
-  }
-}
-
-const handleSizeChange = (size: number) => {
-  pagination.pageSize = size
-  loadTableData()
-}
-
-const handleCurrentChange = (current: number) => {
-  pagination.current = current
-  loadTableData()
+const handleStatusChange = (row: any) => {
+  setTimeout(() => {
+    ElMessage.success(row.status ? '启用成功' : '禁用成功')
+  }, 200)
 }
 
 onMounted(() => {
@@ -269,18 +184,6 @@ onMounted(() => {
     }
   }
 
-  .search-bar {
-    background: var(--bg-primary);
-    padding: 20px;
-    border-radius: var(--radius-md);
-    margin-bottom: 16px;
-    border: 1px solid var(--border-color);
-    
-    .search-form {
-      margin: 0;
-    }
-  }
-
   .table-container {
     background: var(--bg-primary);
     border-radius: var(--radius-md);
@@ -289,18 +192,6 @@ onMounted(() => {
     
     .el-table {
       border: none;
-    }
-    
-    .text-muted {
-      color: var(--text-tertiary);
-      font-size: 12px;
-    }
-    
-    .pagination-container {
-      padding: 16px 20px;
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      justify-content: flex-end;
     }
   }
 }

@@ -53,8 +53,6 @@ public class SecurityConfig {
                 .requestMatchers("/test/**").permitAll()
                 // 允许调试接口无需认证
                 .requestMatchers("/debug/**").permitAll()
-                // 允许文件下载接口无需认证
-                .requestMatchers("/file/avatar/download/**").permitAll()
                 // 允许内容管理接口无需认证（临时测试用）
 //                .requestMatchers("/content/**").permitAll()
                 // 允许管理员用户管理接口无需认证（临时测试用）

@@ -2,7 +2,7 @@
   <div class="sidebar-menu">
     <el-menu
       :default-active="activeMenu"
-      :default-openeds="defaultOpeneds"
+      :default-openeds="['2', '3', '4']"
       :collapse="appStore.isCollapsed"
       :unique-opened="false"
       mode="vertical"
@@ -26,6 +26,7 @@ import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
 import SidebarMenuItem from './SidebarMenuItem.vue'
+import type { MenuItem } from '@/types'
 
 const route = useRoute()
 const appStore = useAppStore()
@@ -48,37 +49,176 @@ const defaultOpeneds = computed(() => {
     openeds.push('/user')
   } else if (currentPath.startsWith('/article')) {
     openeds.push('/article')
-  } else if (currentPath.startsWith('/order')) {
-    openeds.push('/order')
   }
   
   return openeds
 })
 
-// 使用用户store中动态生成的菜单列表
-const menuList = computed(() => {
-  console.log('SidebarMenu: 当前菜单列表:', userStore.menuList)
-  return userStore.menuList
-})
+// 模拟菜单数据
+const menuList = computed<MenuItem[]>(() => [
+  {
+    id: 1,
+    title: '仪表盘',
+    path: '/dashboard',
+    icon: 'DataBoard',
+    meta: {
+      title: '仪表盘',
+      icon: 'DataBoard',
+      requireAuth: true
+    }
+  },
+  {
+    id: 2,
+    title: '系统管理',
+    path: '/system',
+    icon: 'Setting',
+    children: [
+      {
+        id: 21,
+        title: '管理员管理',
+        path: '/system/admin',
+        icon: 'UserFilled',
+        meta: {
+          title: '管理员管理',
+          icon: 'UserFilled',
+          requireAuth: true,
+          permissions: ['system:admin:list']
+        }
+      },
+      {
+        id: 22,
+        title: '角色管理',
+        path: '/system/role',
+        icon: 'Avatar',
+        meta: {
+          title: '角色管理',
+          icon: 'Avatar',
+          requireAuth: true,
+          permissions: ['system:role:list']
+        }
+      },
+      {
+        id: 23,
+        title: '权限管理',
+        path: '/system/permission',
+        icon: 'Lock',
+        meta: {
+          title: '权限管理',
+          icon: 'Lock',
+          requireAuth: true,
+          permissions: ['system:permission:list']
+        }
+      },
+      {
+        id: 24,
+        title: '操作日志',
+        path: '/system/log',
+        icon: 'Document',
+        meta: {
+          title: '操作日志',
+          icon: 'Document',
+          requireAuth: true,
+          permissions: ['system:log:list']
+        }
+      }
+    ],
+    meta: {
+      title: '系统管理',
+      icon: 'Setting',
+      requireAuth: true
+    }
+  },
+  {
+    id: 3,
+    title: '用户管理',
+    path: '/user',
+    icon: 'User',
+    children: [
+      {
+        id: 31,
+        title: '用户列表',
+        path: '/user/list',
+        icon: 'User',
+        meta: {
+          title: '用户列表',
+          icon: 'User',
+          requireAuth: true,
+          permissions: ['user:list']
+        }
+      },
+      {
+        id: 32,
+        title: '用户分析',
+        path: '/user/analysis',
+        icon: 'TrendCharts',
+        meta: {
+          title: '用户分析',
+          icon: 'TrendCharts',
+          requireAuth: true,
+          permissions: ['user:analysis']
+        }
+      }
+    ],
+    meta: {
+      title: '用户管理',
+      icon: 'User',
+      requireAuth: true
+    }
+  },
+  {
+    id: 4,
+    title: '文章管理',
+    path: '/article',
+    icon: 'EditPen',
+    children: [
+      {
+        id: 41,
+        title: '文章列表',
+        path: '/article/list',
+        icon: 'Document',
+        meta: {
+          title: '文章列表',
+          icon: 'Document',
+          requireAuth: true,
+          permissions: ['article:list']
+        }
+      },
+      {
+        id: 42,
+        title: '分类管理',
+        path: '/article/category',
+        icon: 'Collection',
+        meta: {
+          title: '分类管理',
+          icon: 'Collection',
+          requireAuth: true,
+          permissions: ['article:category:list']
+        }
+      },
+      {
+        id: 43,
+        title: '标签管理',
+        path: '/article/tag',
+        icon: 'PriceTag',
+        meta: {
+          title: '标签管理',
+          icon: 'PriceTag',
+          requireAuth: true,
+          permissions: ['article:tag:list']
+        }
+      }
+    ],
+    meta: {
+      title: '文章管理',
+      icon: 'EditPen',
+      requireAuth: true
+    }
+  }
+])
 
 onMounted(() => {
-  // 调试：打印菜单相关信息
-  console.log('=== 侧边栏菜单调试信息 ===')
-  console.log('用户信息:', userStore.userInfo)
-  console.log('用户权限:', userStore.permissions)
-  console.log('用户角色:', userStore.roles)
-  console.log('是否管理员:', userStore.isAdmin)
-  console.log('权限树数据:', userStore.permissionTree)
-  console.log('动态生成的菜单:', userStore.menuList)
-  console.log('当前路由:', route.path)
-  
-  // 如果没有菜单数据，尝试重新加载
-  if (userStore.menuList.length === 0 && userStore.isLoggedIn) {
-    console.log('菜单为空，尝试重新加载权限和菜单')
-    userStore.reloadPermissionsAndMenu().catch(error => {
-      console.error('重新加载菜单失败:', error)
-    })
-  }
+  // 这里可以从后端获取用户权限菜单
+  // userStore.setMenuList(menuList.value)
 })
 </script>
 
@@ -117,20 +257,23 @@ onMounted(() => {
           width: 4px;
           height: 20px;
           background: var(--primary-light);
+          border-radius: 2px;
           transform: translateY(-50%);
-          border-radius: 0 2px 2px 0;
         }
+      }
+      
+      .el-icon {
+        margin-right: 8px;
+        font-size: 18px;
       }
     }
     
     :deep(.el-sub-menu) {
-      margin: 4px 12px;
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      
       .el-sub-menu__title {
         height: 48px;
         line-height: 48px;
+        margin: 4px 12px;
+        border-radius: var(--radius-md);
         transition: all 0.3s ease;
         
         &:hover {
@@ -138,62 +281,47 @@ onMounted(() => {
           color: var(--primary-color);
           transform: translateX(4px);
         }
+        
+        .el-icon {
+          margin-right: 8px;
+          font-size: 18px;
+        }
+        
+        .el-sub-menu__icon-arrow {
+          margin-top: -3px;
+        }
       }
       
-      &.is-active {
-        .el-sub-menu__title {
-          background: var(--gradient-tech);
-          color: white;
+      .el-menu {
+        background: var(--bg-secondary);
+        
+        .el-menu-item {
+          margin: 2px 8px;
+          margin-left: 40px;
+          
+          &::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            width: 8px;
+            height: 1px;
+            background: var(--border-color);
+            transform: translateY(-50%);
+          }
         }
       }
     }
     
-    :deep(.el-menu-item-group) {
-      .el-menu-item-group__title {
-        padding: 12px 20px;
-        font-size: 12px;
-        color: var(--text-secondary);
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-    }
-  }
-}
-
-// 折叠状态样式
-.menu.el-menu--collapse {
-  :deep(.el-menu-item),
-  :deep(.el-sub-menu) {
-    margin: 4px 8px;
-  }
-}
-
-// 暗色主题适配
-@media (prefers-color-scheme: dark) {
-  .sidebar-menu {
-    .menu {
-      :deep(.el-menu-item) {
-        &:hover {
-          background: rgba(255, 255, 255, 0.1);
-        }
+    // 折叠状态样式
+    &.el-menu--collapse {
+      :deep(.el-menu-item),
+      :deep(.el-sub-menu .el-sub-menu__title) {
+        padding: 0 20px;
+        margin: 4px 8px;
         
-        &.is-active {
-          background: var(--primary-color);
-        }
-      }
-      
-      :deep(.el-sub-menu) {
-        .el-sub-menu__title {
-          &:hover {
-            background: rgba(255, 255, 255, 0.1);
-          }
-        }
-        
-        &.is-active {
-          .el-sub-menu__title {
-            background: var(--primary-color);
-          }
+        .el-icon {
+          margin-right: 0;
         }
       }
     }

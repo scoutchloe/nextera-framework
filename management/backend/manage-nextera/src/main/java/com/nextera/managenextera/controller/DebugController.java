@@ -1,6 +1,5 @@
 package com.nextera.managenextera.controller;
 
-import com.nextera.managenextera.dto.SysPermissionDTO;
 import com.nextera.managenextera.entity.Admin;
 import com.nextera.managenextera.entity.AdminRole;
 import com.nextera.managenextera.entity.SysPermission;
@@ -21,11 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 调试控制器 - 用于检查和修复权限数据
@@ -304,70 +301,5 @@ public class DebugController {
         permissionMap.put(permissionCode, permission);
         log.info("创建权限: {} - {}", permissionCode, permissionName);
         return permission;
-    }
-
-    /**
-     * 快速检查contentAdmin权限状态
-     */
-    @GetMapping("/check-content-admin")
-    public Result<Map<String, Object>> checkContentAdmin() {
-        Map<String, Object> result = new HashMap<>();
-        
-        try {
-            // 1. 查找contentAdmin用户
-            Admin contentAdmin = adminService.getByUsername("contentAdmin");
-            if (contentAdmin == null) {
-                result.put("error", "contentAdmin用户不存在");
-                return Result.error("contentAdmin用户不存在");
-            }
-            
-            result.put("userId", contentAdmin.getId());
-            result.put("username", contentAdmin.getUsername());
-            
-            // 2. 查看用户角色
-            List<SysRole> roles = roleService.getRolesByAdminId(contentAdmin.getId());
-            result.put("roles", roles.stream().map(r -> r.getRoleName()).collect(Collectors.toList()));
-            
-            // 3. 查看用户权限
-            List<SysPermissionDTO> permissions = adminService.getAdminPermissions(contentAdmin.getId());
-            List<String> permissionCodes = permissions.stream()
-                    .map(SysPermissionDTO::getPermissionCode)
-                    .collect(Collectors.toList());
-            result.put("permissions", permissionCodes);
-            
-            // 4. 检查关键权限
-            Map<String, Boolean> keyPermissions = new HashMap<>();
-            keyPermissions.put("dashboard:view", permissionCodes.contains("dashboard:view"));
-            keyPermissions.put("article:view", permissionCodes.contains("article:view"));
-            keyPermissions.put("article:list", permissionCodes.contains("article:list"));
-            keyPermissions.put("article:category:list", permissionCodes.contains("article:category:list"));
-            keyPermissions.put("article:tag:list", permissionCodes.contains("article:tag:list"));
-            keyPermissions.put("system:view", permissionCodes.contains("system:view"));
-            keyPermissions.put("user:view", permissionCodes.contains("user:view"));
-            
-            result.put("keyPermissions", keyPermissions);
-            
-            // 5. 建议
-            List<String> suggestions = new ArrayList<>();
-            if (!keyPermissions.get("article:view")) {
-                suggestions.add("缺少 article:view 权限，文章管理菜单不会显示");
-            }
-            if (!keyPermissions.get("dashboard:view")) {
-                suggestions.add("缺少 dashboard:view 权限，仪表盘不会显示");
-            }
-            if (keyPermissions.get("system:view")) {
-                suggestions.add("有 system:view 权限，系统管理菜单会显示（可能不应该有）");
-            }
-            if (keyPermissions.get("user:view")) {
-                suggestions.add("有 user:view 权限，用户管理菜单会显示（可能不应该有）");
-            }
-            
-            result.put("suggestions", suggestions);
-            
-            return Result.success(result);
-        } catch (Exception e) {
-            log.error("检查contentAdmin失败", e);
-            return Result.error("检查失败: " + e.getMessage());
-        }
     }
 } 
