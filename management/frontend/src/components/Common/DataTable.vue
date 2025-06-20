@@ -111,7 +111,7 @@
                 :active-value="column.activeValue || true"
                 :inactive-value="column.inactiveValue || false"
                 :disabled="column.disabled"
-                @change="(val) => $emit('switchChange', row, column.prop, val)"
+                @change="(val: any) => $emit('switchChange', row, column.prop, val)"
               />
             </template>
             <template v-else-if="column.type === 'image'" #default="{ row }">

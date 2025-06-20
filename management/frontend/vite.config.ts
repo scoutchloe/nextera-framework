@@ -31,7 +31,7 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: `@import "@/styles/variables.scss";`,
+        additionalData: `@use "@/styles/variables.scss" as *;`,
       },
     },
   },
@@ -44,5 +44,24 @@ export default defineConfig({
         // 不需要重写路径，因为后端context-path就是/api
       },
     },
+  },
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Element Plus 单独打包
+          'element-plus': ['element-plus'],
+          // Vue 相关库
+          'vue-vendor': ['vue', 'vue-router', 'pinia'],
+          // 工具库
+          'utils': ['dayjs', 'lodash-es'],
+          // 加密相关库
+          'crypto': ['crypto-js', 'jsencrypt'],
+          // 图表库（如果有的话）
+          // 'charts': ['echarts']
+        }
+      }
+    }
   },
 })

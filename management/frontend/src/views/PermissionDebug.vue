@@ -29,13 +29,13 @@
       <div class="debug-section">
         <h3>localStorage数据</h3>
         <div>
-          <strong>token:</strong> {{ localStorage.getItem('token') ? '已存在' : '不存在' }}
+          <strong>token:</strong> {{ localStorageData.token }}
         </div>
         <div>
-          <strong>permissions:</strong> {{ localStorage.getItem('permissions') || '无' }}
+          <strong>permissions:</strong> {{ localStorageData.permissions }}
         </div>
         <div>
-          <strong>menuList:</strong> {{ localStorage.getItem('menuList') || '无' }}
+          <strong>menuList:</strong> {{ localStorageData.menuList }}
         </div>
       </div>
       
@@ -69,24 +69,44 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 
 const userStore = useUserStore()
 
+// 计算属性用于安全访问localStorage
+const localStorageData = computed(() => {
+  if (typeof window === 'undefined') {
+    return {
+      token: '不存在',
+      permissions: '无',
+      menuList: '无'
+    }
+  }
+  
+  return {
+    token: window.localStorage.getItem('token') ? '已存在' : '不存在',
+    permissions: window.localStorage.getItem('permissions') || '无',
+    menuList: window.localStorage.getItem('menuList') || '无'
+  }
+})
+
 const reloadPermissions = async () => {
   try {
     await userStore.reloadPermissionsAndMenu()
     ElMessage.success('权限重新加载成功')
-  } catch (error) {
-    ElMessage.error('权限重新加载失败: ' + error.message)
+  } catch (error: any) {
+    ElMessage.error('权限重新加载失败: ' + (error?.message || '未知错误'))
   }
 }
 
 const clearCache = () => {
-  localStorage.removeItem('permissions')
-  localStorage.removeItem('menuList')
-  localStorage.removeItem('permissionTree')
+  if (typeof window !== 'undefined') {
+    window.localStorage.removeItem('permissions')
+    window.localStorage.removeItem('menuList')
+    window.localStorage.removeItem('permissionTree')
+  }
   userStore.permissions = []
   userStore.menuList = []
   userStore.permissionTree = []
@@ -94,7 +114,9 @@ const clearCache = () => {
 }
 
 const refreshData = () => {
-  location.reload()
+  if (typeof window !== 'undefined') {
+    window.location.reload()
+  }
 }
 </script>
 

@@ -210,9 +210,9 @@ const handleLogin = async () => {
       router.push('/')
     }, 1000)
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('登录失败:', error)
-    ElMessage.error(error.message || '登录失败，请检查用户名和密码')
+    ElMessage.error(error?.message || '登录失败，请检查用户名和密码')
   } finally {
     loading.value = false
   }
@@ -261,7 +261,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/variables.scss";
+@use "@/styles/variables.scss" as *;
 
 .login-container {
   position: relative;

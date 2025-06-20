@@ -361,7 +361,7 @@ const loadTableData = async () => {
     console.log('操作日志响应:', response)
     console.log('响应数据结构:', response.data)
     
-    if (response.code === 200 || response.success) {
+    if (response.code === 200) {
       // 处理不同的响应数据结构
       let dataList = []
       let total = 0

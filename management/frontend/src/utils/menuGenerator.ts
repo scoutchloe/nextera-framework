@@ -289,21 +289,27 @@ export function generateMenuFromPermissions(permissions: any[]): MenuItem[] {
           let parentMenu = menuMap.get(parentConfig.menuItem.id)
           if (!parentMenu) {
             parentMenu = JSON.parse(JSON.stringify(parentConfig.menuItem))
-            parentMenu.children = []
-            menuItems.push(parentMenu)
-            menuMap.set(parentMenu.id, parentMenu)
+            if (parentMenu) {
+              parentMenu.children = []
+              menuItems.push(parentMenu)
+              menuMap.set(parentMenu.id, parentMenu)
+            }
             
             // 添加子菜单
-            if (!parentMenu.children) {
+            if (parentMenu && !parentMenu.children) {
               parentMenu.children = []
             }
-            parentMenu.children.push(menuItem)
+            if (parentMenu && parentMenu.children) {
+              parentMenu.children.push(menuItem)
+            }
           } else {
             // 添加子菜单到现有父菜单
             if (!parentMenu.children) {
               parentMenu.children = []
             }
-            parentMenu.children.push(menuItem)
+            if (parentMenu.children) {
+              parentMenu.children.push(menuItem)
+            }
           }
         }
       } else {

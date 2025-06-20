@@ -1,5 +1,5 @@
 import request from './request'
-import type { Admin, SysRole, SysUser, MenuItem } from '@/types'
+import type { Admin, SysRole, SysUser, MenuItem, ApiResponse } from '@/types'
 import { SignatureUtil } from '@/utils/signature'
 
 // 系统管理相关API
@@ -113,7 +113,16 @@ export const fileApi = {
 export const adminApi = systemApi
 
 // 用户相关API（兼容旧代码）
-export const userApi = systemApi
+export const userApi = {
+  ...systemApi,
+  // 更新用户状态
+  updateUserStatus: (id: number, status: number) => 
+    request.put(`/system/user/${id}/status`, { status }),
+
+  // 重置用户密码
+  resetUserPassword: (id: number, newPassword: string) => 
+    request.put(`/system/user/${id}/reset-password`, { newPassword })
+}
 
 // 角色相关API
 export const roleApi = {

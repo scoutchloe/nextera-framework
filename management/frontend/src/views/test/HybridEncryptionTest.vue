@@ -190,14 +190,7 @@ const testRoleUpdate = async () => {
     responseData.value = null
     
     // 重置步骤信息
-    Object.keys(steps).forEach(key => {
-      steps[key] = '等待开始...'
-    })
-    
-    // 清空详细信息
-    Object.keys(encryptionDetails).forEach(key => {
-      encryptionDetails[key] = ''
-    })
+    resetTestState()
 
     ElMessage.info('开始混合加密测试...')
 
@@ -246,21 +239,23 @@ const testRoleUpdate = async () => {
 
     ElMessage.success('混合加密测试完成！')
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('混合加密测试失败:', error)
     
-    steps.response = '✗ 测试失败: ' + (error.message || '未知错误')
+    steps.response = '✗ 测试失败: ' + (error?.message || '未知错误')
     
+    // 详细错误信息
     responseData.value = {
       success: false,
       message: '混合加密测试失败',
-      details: {
-        error: error.message || '未知错误',
-        stack: error.stack
+      data: null,
+      error: {
+        error: error?.message || '未知错误',
+        stack: error?.stack
       }
     }
     
-    ElMessage.error('混合加密测试失败: ' + (error.message || '未知错误'))
+    ElMessage.error('混合加密测试失败: ' + (error?.message || '未知错误'))
   } finally {
     loading.value = false
   }
@@ -273,12 +268,18 @@ const resetForm = () => {
   responseData.value = null
   
   // 重置步骤信息
-  Object.keys(steps).forEach(key => {
+  resetTestState()
+}
+
+// 重置状态
+const resetTestState = () => {
+  const stepKeys: (keyof typeof steps)[] = ['aesKey', 'aesEncrypt', 'rsaEncrypt', 'sendData', 'response']
+  stepKeys.forEach(key => {
     steps[key] = '等待开始...'
   })
   
-  // 清空详细信息
-  Object.keys(encryptionDetails).forEach(key => {
+  const detailKeys: (keyof typeof encryptionDetails)[] = ['originalData', 'aesKey', 'encryptedData', 'encryptedKey', 'finalData']
+  detailKeys.forEach(key => {
     encryptionDetails[key] = ''
   })
 }

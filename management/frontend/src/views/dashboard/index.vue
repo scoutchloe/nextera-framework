@@ -2,7 +2,7 @@
   <div class="dashboard">
     <div class="dashboard-header">
       <h2>仪表盘</h2>
-      <p>欢迎回来，{{ userStore.userInfo?.adminInfo?.realName || '管理员' }}！</p>
+      <p>欢迎回来，{{ (userStore.userInfo as any)?.realName || userStore.userInfo?.username || '管理员' }}！</p>
     </div>
 
     <!-- 统计卡片 -->

@@ -177,17 +177,19 @@ const testCreateRole = async () => {
       permissionIds: formData.permissionIds.length > 0 ? formData.permissionIds : undefined
     }
 
-    // 移除undefined字段
-    Object.keys(testData).forEach(key => {
-      if (testData[key] === undefined) {
-        delete testData[key]
+    // 清理 undefined 值
+    const cleanedData = { ...testData }
+    const keys = Object.keys(cleanedData) as (keyof typeof cleanedData)[]
+    keys.forEach(key => {
+      if (cleanedData[key] === undefined) {
+        delete cleanedData[key]
       }
     })
 
-    console.log('处理后的测试数据:', testData)
+    console.log('处理后的测试数据:', cleanedData)
 
     // 调用API（会自动生成签名）
-    const response = await roleApi.createRole(testData)
+    const response = await roleApi.createRole(cleanedData)
     
     console.log('API响应:', response)
 
@@ -196,7 +198,7 @@ const testCreateRole = async () => {
       message: response.message || '创建成功',
       signature: 'API调用中已生成（查看浏览器开发者工具网络标签）',
       timestamp: Date.now(),
-      signParams: testData
+      signParams: cleanedData
     }
 
     if (response.code === 200) {

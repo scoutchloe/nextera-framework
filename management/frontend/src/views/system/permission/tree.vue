@@ -334,4 +334,294 @@
       </template>
     </el-dialog>
   </div>
-</template> 
+</template>
+
+<script setup lang="ts">
+import { ref, reactive, computed, onMounted } from 'vue'
+import { ElMessage, ElMessageBox, ElTable } from 'element-plus'
+import { Plus, Search, Refresh, Edit, Delete, View, Expand, Fold, Menu } from '@element-plus/icons-vue'
+import { permissionApi } from '@/api/system'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+
+// 响应式数据
+const loading = ref(false)
+const submitLoading = ref(false)
+const isAllExpanded = ref(false)
+const dialogVisible = ref(false)
+const viewDialogVisible = ref(false)
+const dialogTitle = ref('')
+const tableRef = ref<InstanceType<typeof ElTable>>()
+const formRef = ref()
+
+// 搜索表单
+const searchForm = reactive({
+  permissionName: '',
+  permissionType: '',
+  status: ''
+})
+
+// 表格数据
+const treeData = ref<any[]>([])
+const selectedRows = ref<any[]>([])
+const currentPermission = ref<any>(null)
+
+// 表单数据
+const formData = reactive({
+  id: null,
+  permissionName: '',
+  permissionCode: '',
+  permissionType: 'menu',
+  parentId: null,
+  menuPath: '',
+  componentPath: '',
+  icon: '',
+  sortOrder: 0,
+  status: 1,
+  description: ''
+})
+
+// 表单验证规则
+const formRules = reactive({
+  permissionName: [
+    { required: true, message: '请输入权限名称', trigger: 'blur' }
+  ],
+  permissionCode: [
+    { required: true, message: '请输入权限编码', trigger: 'blur' }
+  ],
+  permissionType: [
+    { required: true, message: '请选择权限类型', trigger: 'change' }
+  ]
+})
+
+// 父级权限选项
+const parentPermissionOptions = ref<any[]>([])
+const treeSelectProps = {
+  value: 'id',
+  label: 'permissionName',
+  children: 'children'
+}
+
+// 计算属性
+const filteredTreeData = computed(() => {
+  if (!searchForm.permissionName && !searchForm.permissionType && searchForm.status === '') {
+    return treeData.value
+  }
+  
+  return filterTreeData(treeData.value)
+})
+
+// 方法
+const loadTreeData = async () => {
+  try {
+    loading.value = true
+    const response = await permissionApi.getPermissionTree()
+    if (response.code === 200) {
+      treeData.value = response.data
+      parentPermissionOptions.value = buildParentOptions(response.data)
+    }
+  } catch (error) {
+    console.error('加载权限树失败:', error)
+    ElMessage.error('加载权限树失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+const filterTreeData = (data: any[]): any[] => {
+  return data.filter(item => {
+    let match = true
+    
+    if (searchForm.permissionName) {
+      match = match && item.permissionName.includes(searchForm.permissionName)
+    }
+    
+    if (searchForm.permissionType) {
+      match = match && item.permissionType === searchForm.permissionType
+    }
+    
+    if (searchForm.status !== '') {
+      match = match && item.status === searchForm.status
+    }
+    
+    if (item.children && item.children.length > 0) {
+      item.children = filterTreeData(item.children)
+      if (item.children.length > 0) {
+        match = true
+      }
+    }
+    
+    return match
+  })
+}
+
+const buildParentOptions = (data: any[]): any[] => {
+  const options: any[] = [{ id: null, permissionName: '顶级权限', children: [] }]
+  
+  const buildOptions = (items: any[], parentOption: any) => {
+    items.forEach(item => {
+      if (item.permissionType === 'menu') {
+        const option = {
+          id: item.id,
+          permissionName: item.permissionName,
+          children: []
+        }
+        parentOption.children.push(option)
+        
+        if (item.children && item.children.length > 0) {
+          buildOptions(item.children, option)
+        }
+      }
+    })
+  }
+  
+  buildOptions(data, options[0])
+  return options
+}
+
+const getIconComponent = (iconName: string) => {
+  return (ElementPlusIconsVue as any)[iconName] || Menu
+}
+
+const handleSearch = () => {
+  // 搜索逻辑在计算属性中处理
+}
+
+const handleReset = () => {
+  Object.assign(searchForm, {
+    permissionName: '',
+    permissionType: '',
+    status: ''
+  })
+}
+
+const handleRefresh = () => {
+  loadTreeData()
+}
+
+const handleExpandAll = () => {
+  isAllExpanded.value = true
+  tableRef.value?.doLayout()
+}
+
+const handleCollapseAll = () => {
+  isAllExpanded.value = false
+  tableRef.value?.doLayout()
+}
+
+const handleSelectionChange = (selection: any[]) => {
+  selectedRows.value = selection
+}
+
+const handleAdd = () => {
+  dialogTitle.value = '新增权限'
+  resetFormData()
+  dialogVisible.value = true
+}
+
+const handleAddChild = (row: any) => {
+  dialogTitle.value = '新增子权限'
+  resetFormData()
+  formData.parentId = row.id
+  dialogVisible.value = true
+}
+
+const handleEdit = (row: any) => {
+  dialogTitle.value = '编辑权限'
+  Object.assign(formData, row)
+  dialogVisible.value = true
+}
+
+const handleView = (row: any) => {
+  currentPermission.value = row
+  viewDialogVisible.value = true
+}
+
+const handleDelete = async (row: any) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除权限"${row.permissionName}"吗？`,
+      '删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    await permissionApi.deletePermission(row.id)
+    ElMessage.success('删除成功')
+    loadTreeData()
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      console.error('删除权限失败:', error)
+      ElMessage.error('删除权限失败')
+    }
+  }
+}
+
+const handleStatusChange = async (row: any) => {
+  try {
+    await permissionApi.updatePermissionStatus(row.id, row.status)
+    ElMessage.success(row.status === 1 ? '启用成功' : '禁用成功')
+  } catch (error) {
+    console.error('更新权限状态失败:', error)
+    ElMessage.error('更新权限状态失败')
+    row.status = row.status === 1 ? 0 : 1 // 回滚状态
+  }
+}
+
+const handleTypeChange = (value: string) => {
+  if (value === 'button') {
+    formData.menuPath = ''
+    formData.componentPath = ''
+  }
+}
+
+const handleDialogClose = () => {
+  dialogVisible.value = false
+  resetFormData()
+}
+
+const handleSubmit = async () => {
+  try {
+    await formRef.value?.validate()
+    submitLoading.value = true
+    
+    if (formData.id) {
+      await permissionApi.updatePermission(formData.id, formData)
+      ElMessage.success('更新成功')
+    } else {
+      await permissionApi.createPermission(formData)
+      ElMessage.success('创建成功')
+    }
+    
+    handleDialogClose()
+    loadTreeData()
+  } catch (error) {
+    console.error('提交失败:', error)
+    ElMessage.error('提交失败')
+  } finally {
+    submitLoading.value = false
+  }
+}
+
+const resetFormData = () => {
+  Object.assign(formData, {
+    id: null,
+    permissionName: '',
+    permissionCode: '',
+    permissionType: 'menu',
+    parentId: null,
+    menuPath: '',
+    componentPath: '',
+    icon: '',
+    sortOrder: 0,
+    status: 1,
+    description: ''
+  })
+}
+
+onMounted(() => {
+  loadTreeData()
+})
+</script> 

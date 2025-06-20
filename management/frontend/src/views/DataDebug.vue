@@ -134,7 +134,7 @@ const testLogData = async () => {
     
     // 数据处理逻辑
     const response = mockLogData
-    let dataList = []
+    let dataList: any[] = []
     let total = 0
     
     if (response.data) {

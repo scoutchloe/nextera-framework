@@ -145,17 +145,16 @@ const generateSignature = () => {
 
   // 手动生成签名字符串以便调试
   const sortedParams = { ...signParams, timestamp }
-  const signString = Object.keys(sortedParams)
-    .sort()
-    .map(key => `${key}=${sortedParams[key]}`)
-    .join('&') + '&key=nextera_role_management_secret_key_2025'
+  const queryString = Object.keys(sortedParams)
+    .map(key => `${key}=${(sortedParams as any)[key]}`)
+    .join('&')
 
-  const signature = CryptoJS.MD5(signString).toString().toUpperCase()
+  const signature = CryptoJS.MD5(queryString).toString().toUpperCase()
 
   signatureResult.value = {
     timestamp,
     signParams,
-    signString,
+    signString: queryString,
     signature,
     headers: {
       'X-Signature': signature,
@@ -165,7 +164,7 @@ const generateSignature = () => {
 
   console.log('调试签名生成:')
   console.log('参数:', signParams)
-  console.log('签名字符串:', signString)
+  console.log('签名字符串:', queryString)
   console.log('最终签名:', signature)
 }
 
