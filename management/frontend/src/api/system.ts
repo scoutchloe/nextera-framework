@@ -1,5 +1,6 @@
 import request from './request'
 import type { Admin, SysRole, SysUser, MenuItem } from '@/types'
+import { SignatureUtil } from '@/utils/signature'
 
 // 系统管理相关API
 export const systemApi = {
@@ -128,17 +129,36 @@ export const roleApi = {
   getRoleDetail: (id: number) => 
     request.get(`/system/role/${id}`),
 
-  // 创建角色
-  createRole: (data: any) => 
-    request.post('/system/role', data),
+  // 创建角色 - 带签名验证
+  createRole: (data: any) => {
+    const signatureData = SignatureUtil.generateSignatureHeaders(data)
+    return request.post('/system/role', signatureData.data, {
+      headers: signatureData.headers
+    })
+  },
 
-  // 更新角色
-  updateRole: (id: number, data: any) => 
-    request.put('/system/role', { ...data, id }),
+  // 更新角色 - 带混合加密
+  updateRole: async (id: number, data: any) => {
+    const { default: hybridEncryption } = await import('@/utils/hybridEncryption')
+    const requestData = { ...data, id }
+    const encryptedData = await hybridEncryption.hybridEncrypt(requestData)
+    return request.put('/system/role', encryptedData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Encrypted': 'true',
+        'X-Encryption-Type': 'hybrid'
+      }
+    })
+  },
 
-  // 删除角色
-  deleteRole: (id: number) => 
-    request.delete(`/system/role/${id}`),
+  // 删除角色 - 带防重放保护
+  deleteRole: async (id: number) => {
+    const { generateAntiReplayHeaders } = await import('@/utils/antiReplay')
+    const antiReplayHeaders = generateAntiReplayHeaders('DELETE', `/system/role/${id}`, '')
+    return request.delete(`/system/role/${id}`, {
+      headers: antiReplayHeaders
+    })
+  },
 
   // 批量删除角色
   batchDeleteRole: (ids: number[]) => 

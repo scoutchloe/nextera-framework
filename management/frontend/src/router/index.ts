@@ -253,16 +253,6 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/quick-test',
-    name: 'QuickTest',
-    component: () => import('@/views/QuickTest.vue'),
-    meta: {
-      title: '快速测试',
-      requireAuth: false,
-      hideInMenu: true
-    }
-  },
-  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/error/404.vue'),
