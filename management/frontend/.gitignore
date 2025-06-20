@@ -6,7 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
+management/backend/manage-nextera/uploads/
 node_modules
 .DS_Store
 dist

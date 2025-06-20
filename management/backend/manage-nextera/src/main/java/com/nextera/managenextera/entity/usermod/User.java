@@ -1,4 +1,4 @@
-package com.nextera.managenextera.entity.user;
+package com.nextera.managenextera.entity.usermod;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

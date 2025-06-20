@@ -44,7 +44,7 @@ service.interceptors.response.use(
     // 处理业务逻辑错误
     if (data.code !== 200) {
       console.error('业务错误:', data.code, data.message)
-      // 特殊错误码处理
+      // 只处理需要全局处理的特殊错误码
       switch (data.code) {
         case 401:
           // 未授权，清除token并跳转登录
@@ -53,18 +53,9 @@ service.interceptors.response.use(
           ElMessage.error('登录已过期，请重新登录')
           window.location.href = '/login'
           break
-        case 403:
-          ElMessage.error('权限不足')
-          break
-        case 404:
-          ElMessage.error('请求的资源不存在')
-          break
-        case 500:
-          ElMessage.error('服务器内部错误')
-          break
-        default:
-          ElMessage.error(data.message || '请求失败')
+        // 其他错误码不在这里处理，让调用方处理
       }
+      // 不要在这里显示错误消息，让调用方处理
       return Promise.reject(new Error(data.message || '请求失败'))
     }
     
@@ -75,49 +66,23 @@ service.interceptors.response.use(
   (error) => {
     console.error('Response error:', error)
     
-    let message = '网络错误'
-    
+    // 只处理需要全局处理的特殊HTTP错误
     if (error.response) {
-      const { status, data } = error.response
+      const { status } = error.response
       
       switch (status) {
-        case 400:
-          message = data?.message || '请求参数错误'
-          break
         case 401:
-          message = '未授权，请重新登录'
+          // 未授权，清除token并跳转登录
           localStorage.removeItem('token')
           localStorage.removeItem('user')
+          ElMessage.error('登录已过期，请重新登录')
           window.location.href = '/login'
           break
-        case 403:
-          message = '权限不足'
-          break
-        case 404:
-          message = '请求的资源不存在'
-          break
-        case 500:
-          message = '服务器内部错误'
-          break
-        case 502:
-          message = '网关错误'
-          break
-        case 503:
-          message = '服务不可用'
-          break
-        case 504:
-          message = '网关超时'
-          break
-        default:
-          message = data?.message || `请求失败 (${status})`
+        // 其他HTTP错误不在这里处理，让调用方处理
       }
-    } else if (error.request) {
-      message = '网络连接失败'
-    } else {
-      message = error.message || '请求失败'
     }
     
-    ElMessage.error(message)
+    // 不要在这里显示错误消息，让调用方处理
     return Promise.reject(error)
   }
 )

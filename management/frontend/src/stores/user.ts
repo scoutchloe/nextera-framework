@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Admin, SysUser, LoginRequest, LoginResponse, MenuItem } from '@/types'
+import { generateMenuFromPermissions } from '@/utils/menuGenerator'
 
 export const useUserStore = defineStore('user', () => {
   // 状态
@@ -10,6 +11,7 @@ export const useUserStore = defineStore('user', () => {
   const permissions = ref<string[]>([])
   const roles = ref<string[]>([])
   const menuList = ref<MenuItem[]>([])
+  const permissionTree = ref<any[]>([]) // 后端返回的权限树数据
 
   // 计算属性
   const isLoggedIn = computed(() => !!token.value)
@@ -28,6 +30,7 @@ export const useUserStore = defineStore('user', () => {
     const storedPermissions = localStorage.getItem('permissions')
     const storedRoles = localStorage.getItem('roles')
     const storedMenuList = localStorage.getItem('menuList')
+    const storedPermissionTree = localStorage.getItem('permissionTree')
 
     if (storedToken) {
       token.value = storedToken
@@ -60,6 +63,13 @@ export const useUserStore = defineStore('user', () => {
         console.error('解析菜单信息失败:', error)
       }
     }
+    if (storedPermissionTree) {
+      try {
+        permissionTree.value = JSON.parse(storedPermissionTree)
+      } catch (error) {
+        console.error('解析权限树失败:', error)
+      }
+    }
   }
 
   // 登录
@@ -78,29 +88,77 @@ export const useUserStore = defineStore('user', () => {
       setLoginInfo(response.data)
       console.log('UserStore: 登录信息设置完成')
       
-      // 获取用户权限
-      try {
-        console.log('UserStore: 开始获取用户权限')
-        const permissionsResponse = await authApi.getUserPermissions()
-        console.log('UserStore: 权限API响应:', permissionsResponse)
-        
-        if (permissionsResponse.data && Array.isArray(permissionsResponse.data)) {
-          const permissionCodes = permissionsResponse.data.map((p: any) => p.permissionCode).filter(Boolean)
-          permissions.value = permissionCodes
-          localStorage.setItem('permissions', JSON.stringify(permissionCodes))
-          console.log('UserStore: 权限设置完成:', permissionCodes)
-        }
-      } catch (permError) {
-        console.warn('获取权限失败:', permError)
-        // 使用默认权限
-        permissions.value = ['system:user:list', 'system:role:list', 'system:permission:list']
-        console.log('UserStore: 使用默认权限')
-      }
+      // 获取用户权限并生成菜单
+      await loadUserPermissionsAndMenu()
+      
     } catch (error) {
       console.error('UserStore: 登录失败:', error)
       console.error('UserStore: 错误详情:', error)
       throw new Error(error instanceof Error ? error.message : '登录失败，请检查用户名和密码')
     }
+  }
+
+  // 加载用户权限和菜单
+  const loadUserPermissionsAndMenu = async () => {
+    try {
+      console.log('UserStore: 开始获取用户权限')
+      const { authApi } = await import('@/api/auth')
+      const permissionsResponse = await authApi.getUserPermissions()
+      console.log('UserStore: 权限API响应:', permissionsResponse)
+      
+      if (permissionsResponse.data && Array.isArray(permissionsResponse.data)) {
+        // 保存权限树数据
+        permissionTree.value = permissionsResponse.data
+        localStorage.setItem('permissionTree', JSON.stringify(permissionTree.value))
+        
+        // 提取权限编码
+        const permissionCodes = extractPermissionCodes(permissionsResponse.data)
+        permissions.value = permissionCodes
+        localStorage.setItem('permissions', JSON.stringify(permissionCodes))
+        console.log('UserStore: 权限设置完成:', permissionCodes)
+        
+        // 生成菜单
+        const generatedMenus = generateMenuFromPermissions(permissionsResponse.data)
+        menuList.value = generatedMenus
+        localStorage.setItem('menuList', JSON.stringify(generatedMenus))
+        console.log('UserStore: 菜单生成完成:', generatedMenus)
+      }
+    } catch (permError) {
+      console.warn('获取权限失败:', permError)
+      // 权限获取失败时不使用默认权限，避免授予未经授权的访问
+      permissions.value = []
+      menuList.value = []
+      permissionTree.value = []
+      
+      // 清除相关的localStorage
+      localStorage.removeItem('permissions')
+      localStorage.removeItem('menuList')
+      localStorage.removeItem('permissionTree')
+      
+      console.log('UserStore: 权限获取失败，清空权限和菜单')
+      
+      // 可以选择抛出错误让用户重新登录
+      throw new Error('获取用户权限失败，请重新登录')
+    }
+  }
+
+  // 提取权限编码的辅助函数
+  const extractPermissionCodes = (permissions: any[]): string[] => {
+    const codes: string[] = []
+    
+    function extract(perms: any[]) {
+      for (const perm of perms) {
+        if (perm.permissionCode) {
+          codes.push(perm.permissionCode)
+        }
+        if (perm.children && Array.isArray(perm.children)) {
+          extract(perm.children)
+        }
+      }
+    }
+    
+    extract(permissions)
+    return codes
   }
 
   // 设置登录信息
@@ -127,7 +185,7 @@ export const useUserStore = defineStore('user', () => {
       } as Admin
     }
     
-    permissions.value = loginResponse.permissions || []
+    // 注意：权限和角色现在通过单独的API获取，不再从登录响应中获取
     roles.value = loginResponse.roles || []
     
     if (loginResponse.refreshToken) {
@@ -137,7 +195,6 @@ export const useUserStore = defineStore('user', () => {
     // 保存到localStorage
     localStorage.setItem('token', token.value)
     localStorage.setItem('user', JSON.stringify(user.value))
-    localStorage.setItem('permissions', JSON.stringify(permissions.value))
     localStorage.setItem('roles', JSON.stringify(roles.value))
     
     if (refreshToken.value) {
@@ -153,6 +210,7 @@ export const useUserStore = defineStore('user', () => {
     permissions.value = []
     roles.value = []
     menuList.value = []
+    permissionTree.value = []
 
     // 清除localStorage
     localStorage.removeItem('token')
@@ -161,6 +219,7 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('permissions')
     localStorage.removeItem('roles')
     localStorage.removeItem('menuList')
+    localStorage.removeItem('permissionTree')
   }
 
   // 更新用户信息
@@ -181,9 +240,12 @@ export const useUserStore = defineStore('user', () => {
   const hasPermission = (permission: string): boolean => {
     // admin账户拥有所有权限
     if (isAdmin.value) {
+      console.log(`权限检查: ${permission} - 管理员账户，拥有所有权限`)
       return true
     }
-    return permissions.value.includes(permission)
+    const result = permissions.value.includes(permission)
+    console.log(`权限检查: ${permission} - 结果: ${result}，用户权限:`, permissions.value)
+    return result
   }
 
   // 检查多个权限（or关系）
@@ -206,19 +268,11 @@ export const useUserStore = defineStore('user', () => {
 
   // 检查角色
   const hasRole = (role: string): boolean => {
-    // admin账户拥有所有角色权限
-    if (isAdmin.value) {
-      return true
-    }
     return roles.value.includes(role)
   }
 
   // 检查多个角色（or关系）
   const hasAnyRole = (roleList: string[]): boolean => {
-    // admin账户拥有所有角色权限
-    if (isAdmin.value) {
-      return true
-    }
     return roleList.some(role => roles.value.includes(role))
   }
 
@@ -227,8 +281,10 @@ export const useUserStore = defineStore('user', () => {
     try {
       const { authApi } = await import('@/api/auth')
       const response = await authApi.getUserInfo()
-      user.value = response.data
-      localStorage.setItem('user', JSON.stringify(user.value))
+      if (response.data) {
+        updateUser(response.data)
+      }
+      return response.data
     } catch (error) {
       console.error('获取用户信息失败:', error)
       throw error
@@ -239,23 +295,28 @@ export const useUserStore = defineStore('user', () => {
   const refreshAccessToken = async (): Promise<boolean> => {
     try {
       if (!refreshToken.value) {
-        throw new Error('没有刷新token')
+        return false
       }
-
-      // 这里应该调用刷新token的API
-      // const response = await authApi.refreshToken(refreshToken.value)
       
-      // 模拟刷新token响应
-      const newToken = 'refreshed-token-' + Date.now()
-      token.value = newToken
-      localStorage.setItem('token', newToken)
+      const { authApi } = await import('@/api/auth')
+      const response = await authApi.refreshToken(refreshToken.value)
       
-      return true
+      if (response.data?.token) {
+        token.value = response.data.token
+        localStorage.setItem('token', token.value)
+        return true
+      }
+      
+      return false
     } catch (error) {
       console.error('刷新token失败:', error)
-      logout()
       return false
     }
+  }
+
+  // 重新加载权限和菜单
+  const reloadPermissionsAndMenu = async () => {
+    await loadUserPermissionsAndMenu()
   }
 
   return {
@@ -266,6 +327,7 @@ export const useUserStore = defineStore('user', () => {
     permissions,
     roles,
     menuList,
+    permissionTree,
     
     // 计算属性
     isLoggedIn,
@@ -281,12 +343,14 @@ export const useUserStore = defineStore('user', () => {
     setLoginInfo,
     updateUser,
     setMenuList,
-    fetchUserInfo,
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
     hasRole,
     hasAnyRole,
-    refreshAccessToken
+    fetchUserInfo,
+    refreshAccessToken,
+    loadUserPermissionsAndMenu,
+    reloadPermissionsAndMenu
   }
 }) 

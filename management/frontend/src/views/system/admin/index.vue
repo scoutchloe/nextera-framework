@@ -33,9 +33,12 @@
         </el-form-item>
         <el-form-item label="角色">
           <el-select v-model="searchForm.roleId" placeholder="请选择角色" clearable>
-            <el-option label="超级管理员" value="1" />
-            <el-option label="系统管理员" value="2" />
-            <el-option label="内容管理员" value="3" />
+            <el-option 
+              v-for="role in roleOptions" 
+              :key="role.id" 
+              :label="role.roleName" 
+              :value="role.id" 
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
@@ -66,11 +69,22 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="avatar" label="头像" width="80">
+        <el-table-column prop="avatar" label="头像" width="120">
           <template #default="{ row }">
-            <el-avatar :src="row.avatar" :size="40">
-              {{ row.realName?.charAt(0) }}
-            </el-avatar>
+            <div class="avatar-cell">
+              <el-avatar :src="getAvatarDisplayUrl(row.avatar)" :size="40">
+                {{ row.realName?.charAt(0) }}
+              </el-avatar>
+              <el-button 
+                v-if="row.avatar" 
+                type="text" 
+                size="small" 
+                @click="downloadAvatar(row.avatar)"
+                class="download-btn"
+              >
+                下载
+              </el-button>
+            </div>
           </template>
         </el-table-column>
         <el-table-column prop="username" label="用户名" width="120" />
@@ -207,11 +221,14 @@
 
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="角色" prop="roleIds">
-              <el-select v-model="formData.roleIds" multiple placeholder="请选择角色" style="width: 100%">
-                <el-option label="超级管理员" value="1" />
-                <el-option label="系统管理员" value="2" />
-                <el-option label="内容管理员" value="3" />
+            <el-form-item label="角色" prop="role">
+              <el-select v-model="formData.role" placeholder="请选择角色" style="width: 100%">
+                <el-option 
+                  v-for="role in roleOptions" 
+                  :key="role.id" 
+                  :label="role.roleName" 
+                  :value="role.id" 
+                />
               </el-select>
             </el-form-item>
           </el-col>
@@ -226,16 +243,26 @@
         </el-row>
 
         <el-form-item label="头像" prop="avatar">
-          <el-upload
-            class="avatar-uploader"
-            action="#"
-            :show-file-list="false"
-            :before-upload="beforeAvatarUpload"
-            :http-request="uploadAvatar"
-          >
-            <img v-if="formData.avatar" :src="formData.avatar" class="avatar" />
-            <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
-          </el-upload>
+          <div class="avatar-upload-container">
+            <el-upload
+              class="avatar-uploader"
+              action="#"
+              :show-file-list="false"
+              :before-upload="beforeAvatarUpload"
+              :http-request="uploadAvatar"
+            >
+              <img v-if="formData.avatar" :src="getAvatarDisplayUrl(formData.avatar)" class="avatar" />
+              <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+            </el-upload>
+            <div class="avatar-actions" v-if="formData.avatar">
+              <el-button type="text" size="small" @click="downloadAvatar(formData.avatar)">
+                下载头像
+              </el-button>
+              <el-button type="text" size="small" danger @click="formData.avatar = ''">
+                删除头像
+              </el-button>
+            </div>
+          </div>
         </el-form-item>
 
         <el-form-item label="备注" prop="remark">
@@ -303,8 +330,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Refresh, Edit, Delete, Key } from '@element-plus/icons-vue'
 import type { FormInstance, UploadProps, UploadRequestOptions } from 'element-plus'
-import { adminApi, roleApi } from '@/api/system'
-import { processApiResponse, handleTableData, debugLog } from '@/utils/dataHandler'
+import { adminApi, roleApi, fileApi } from '@/api/system'
 
 // 响应式数据
 const loading = ref(false)
@@ -317,6 +343,9 @@ const isEdit = ref(false)
 const formRef = ref<FormInstance>()
 const passwordFormRef = ref<FormInstance>()
 const currentUserId = ref<number | null>(null)
+
+// 角色选项
+const roleOptions = ref<any[]>([])
 
 // 搜索表单
 const searchForm = reactive({
@@ -334,64 +363,7 @@ const pagination = reactive({
 })
 
 // 表格数据
-const tableData = ref<any[]>([
-  {
-    id: 1,
-    username: 'admin',
-    realName: '超级管理员',
-    email: 'admin@nextera.com',
-    phone: '13800138000',
-    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-    roleId: 1,
-    roleName: '超级管理员',
-    status: 1,
-    lastLoginTime: '2024-01-01 10:00:00',
-    createTime: '2023-01-01 00:00:00',
-    remark: '系统默认超级管理员'
-  },
-  {
-    id: 2,
-    username: 'manager',
-    realName: '张三',
-    email: 'zhangsan@nextera.com',
-    phone: '13800138001',
-    avatar: null,
-    roleId: 2,
-    roleName: '系统管理员',
-    status: 1,
-    lastLoginTime: '2024-01-01 09:30:00',
-    createTime: '2023-06-01 10:00:00',
-    remark: '系统管理员'
-  },
-  {
-    id: 3,
-    username: 'editor',
-    realName: '李四',
-    email: 'lisi@nextera.com',
-    phone: '13800138002',
-    avatar: null,
-    roleId: 3,
-    roleName: '内容管理员',
-    status: 1,
-    lastLoginTime: '2024-01-01 08:45:00',
-    createTime: '2023-08-15 14:30:00',
-    remark: '负责内容管理'
-  },
-  {
-    id: 4,
-    username: 'test',
-    realName: '测试账号',
-    email: 'test@nextera.com',
-    phone: '13800138003',
-    avatar: null,
-    roleId: 3,
-    roleName: '内容管理员',
-    status: 0,
-    lastLoginTime: '2023-12-01 16:20:00',
-    createTime: '2023-10-01 11:00:00',
-    remark: '测试用账号'
-  }
-])
+const tableData = ref<any[]>([])
 
 const selectedRows = ref<any[]>([])
 
@@ -405,7 +377,7 @@ const formData = reactive({
   email: '',
   phone: '',
   avatar: '',
-  roleIds: [],
+  role: 2, // 默认为普通管理员
   status: 1,
   remark: ''
 })
@@ -452,7 +424,7 @@ const formRules = {
     { required: true, message: '请输入手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }
   ],
-  roleIds: [
+  role: [
     { required: true, message: '请选择角色', trigger: 'change' }
   ]
 }
@@ -492,6 +464,31 @@ const handleReset = () => {
     status: ''
   })
   handleSearch()
+}
+
+// 加载角色选项
+const loadRoleOptions = async () => {
+  try {
+    const response = await roleApi.getAllRoles()
+    if (response.code === 200) {
+      roleOptions.value = response.data || []
+    } else {
+      // 使用默认角色选项
+      roleOptions.value = [
+        { id: 1, roleName: '超级管理员' },
+        { id: 2, roleName: '系统管理员' },
+        { id: 3, roleName: '内容管理员' }
+      ]
+    }
+  } catch (error) {
+    console.error('加载角色选项失败:', error)
+    // 使用默认角色选项
+    roleOptions.value = [
+      { id: 1, roleName: '超级管理员' },
+      { id: 2, roleName: '系统管理员' },
+      { id: 3, roleName: '内容管理员' }
+    ]
+  }
 }
 
 const loadTableData = async () => {
@@ -543,8 +540,8 @@ const loadTableData = async () => {
        email: item.email,
        phone: item.phone,
        avatar: item.avatar,
-       roleId: item.role || item.roleId,  // 后端可能返回role字段
-       roleName: item.roleName || (item.role === 1 ? '超级管理员' : '系统管理员'),
+       roleId: item.role || item.roleId,  // 后端返回role字段
+       roleName: item.roleName || getRoleNameById(item.role || item.roleId),
        status: item.status,
        lastLoginTime: item.lastLoginTime,
        createTime: item.createTime,
@@ -609,6 +606,12 @@ const loadTableData = async () => {
   }
 }
 
+// 根据角色ID获取角色名称
+const getRoleNameById = (roleId: number) => {
+  const role = roleOptions.value.find(r => r.id === roleId)
+  return role ? role.roleName : '未知角色'
+}
+
 const handleAdd = () => {
   dialogTitle.value = '新增管理员'
   isEdit.value = false
@@ -621,7 +624,7 @@ const handleAdd = () => {
     email: '',
     phone: '',
     avatar: '',
-    roleIds: [],
+    role: 2,
     status: 1,
     remark: ''
   })
@@ -633,7 +636,7 @@ const handleEdit = (row: any) => {
   isEdit.value = true
   Object.assign(formData, {
     ...row,
-    roleIds: [row.roleId.toString()],
+    role: row.roleId || 2,
     password: '',
     confirmPassword: ''
   })
@@ -671,10 +674,10 @@ const handleDelete = (row: any) => {
 }
 
 const handleStatusChange = async (row: any) => {
-  try {
-    console.log('更改管理员状态:', row.id, row.status)
-    const response = await adminApi.updateAdminStatus(row.id, row.status)
-    console.log('状态更改响应:', response)
+      try {
+      console.log('更改管理员状态:', row.id, row.status)
+      const response = await adminApi.updateAdmin(row.id, { status: row.status })
+      console.log('状态更改响应:', response)
     
     if (response.code === 200) {
       ElMessage.success(row.status ? '启用成功' : '禁用成功')
@@ -716,7 +719,8 @@ const handleSubmit = async () => {
         email: formData.email,
         phone: formData.phone,
         avatar: formData.avatar,
-        roleIds: formData.roleIds,
+        role: formData.role, // 修正：使用roleId字段
+        roleIds: [formData.role || 2], // 修正：使用roleIds数组格式
         status: formData.status,
         remark: formData.remark
       }
@@ -731,8 +735,28 @@ const handleSubmit = async () => {
       let response
       if (isEdit.value && formData.id) {
         response = await adminApi.updateAdmin(formData.id, submitData)
+        // 编辑后单独分配角色
+        if (response.code === 200 && formData.role) {
+          try {
+            await adminApi.assignAdminRoles(formData.id, [formData.role])
+            console.log('角色分配成功')
+          } catch (roleError) {
+            console.error('角色分配失败:', roleError)
+            ElMessage.warning('管理员信息更新成功，但角色分配失败')
+          }
+        }
       } else {
         response = await adminApi.createAdmin(submitData)
+        // 新增后也需要分配角色
+        if (response.code === 200 && response.data && response.data.id && formData.role) {
+          try {
+            await adminApi.assignAdminRoles(response.data.id, [formData.role])
+            console.log('新用户角色分配成功')
+          } catch (roleError) {
+            console.error('新用户角色分配失败:', roleError)
+            ElMessage.warning('管理员创建成功，但角色分配失败')
+          }
+        }
       }
       
       console.log('管理员操作响应:', response)
@@ -798,27 +822,90 @@ const handleCurrentChange = (current: number) => {
 
 // 头像上传相关
 const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
-  if (rawFile.type !== 'image/jpeg' && rawFile.type !== 'image/png') {
-    ElMessage.error('头像图片只能是 JPG/PNG 格式!')
+  if (rawFile.type !== 'image/jpeg' && rawFile.type !== 'image/png' && rawFile.type !== 'image/gif' && rawFile.type !== 'image/webp') {
+    ElMessage.error('头像图片只能是 JPG/PNG/GIF/WEBP 格式!')
     return false
-  } else if (rawFile.size / 1024 / 1024 > 2) {
-    ElMessage.error('头像图片大小不能超过 2MB!')
+  } else if (rawFile.size / 1024 / 1024 > 10) {
+    ElMessage.error('头像图片大小不能超过 10MB!')
     return false
   }
   return true
 }
 
-const uploadAvatar = (options: UploadRequestOptions) => {
-  // 模拟上传
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    formData.avatar = e.target?.result as string
+const uploadAvatar = async (options: UploadRequestOptions) => {
+  try {
+    console.log('开始上传头像:', options.file.name)
+    const response = await fileApi.uploadAvatar(options.file)
+    
+    if (response.code === 200 && response.data) {
+      // 使用返回的文件URL更新头像
+      formData.avatar = response.data.fileUrl
+      ElMessage.success('头像上传成功')
+      
+      console.log('头像上传成功:', response.data)
+      options.onSuccess?.(response.data)
+    } else {
+      ElMessage.error(response.message || '头像上传失败')
+      options.onError?.({ 
+        status: 400, 
+        method: 'POST', 
+        url: '/file/avatar/upload',
+        message: response.message || '上传失败'
+      } as any)
+    }
+  } catch (error) {
+    console.error('头像上传失败:', error)
+    ElMessage.error('头像上传失败，请重试')
+    options.onError?.({ 
+      status: 500, 
+      method: 'POST', 
+      url: '/file/avatar/upload',
+      message: '网络错误'
+    } as any)
   }
-  reader.readAsDataURL(options.file)
+}
+
+// 处理头像显示URL
+const getAvatarDisplayUrl = (avatar: string | null) => {
+  if (!avatar) return ''
+  
+  // 如果是完整的URL（以http开头），直接返回
+  if (avatar.startsWith('http')) {
+    return avatar
+  }
+  
+  // 如果是相对路径，添加API基础路径
+  if (avatar.startsWith('/file/avatar/download/')) {
+    return `/api${avatar}`
+  }
+  
+  // 如果是base64数据，直接返回
+  if (avatar.startsWith('data:image')) {
+    return avatar
+  }
+  
+  return avatar
+}
+
+// 下载头像
+const downloadAvatar = (avatar: string) => {
+  if (!avatar) {
+    ElMessage.warning('暂无头像可下载')
+    return
+  }
+  
+  // 创建临时下载链接
+  const link = document.createElement('a')
+  link.href = getAvatarDisplayUrl(avatar)
+  link.download = 'avatar.jpg'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 // 组件挂载时加载数据
 onMounted(() => {
+  loadRoleOptions()
   loadTableData()
 })
 </script>
@@ -880,7 +967,24 @@ onMounted(() => {
   }
 }
 
-// 头像上传样式
+// 头像相关样式
+.avatar-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  .download-btn {
+    font-size: 12px;
+    padding: 2px 4px;
+  }
+}
+
+.avatar-upload-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
 .avatar-uploader {
   :deep(.el-upload) {
     border: 1px dashed var(--border-color);
@@ -908,6 +1012,18 @@ onMounted(() => {
     width: 80px;
     height: 80px;
     display: block;
+    object-fit: cover;
+  }
+}
+
+.avatar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  
+  .el-button {
+    padding: 4px 8px;
+    font-size: 12px;
   }
 }
 

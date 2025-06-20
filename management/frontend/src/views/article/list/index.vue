@@ -6,7 +6,12 @@
         <p>管理系统文章内容</p>
       </div>
       <div class="header-actions">
-        <el-button type="primary" :icon="Plus" @click="handleAdd">
+        <el-button 
+          v-permission="'article:add'"
+          type="primary" 
+          :icon="Plus" 
+          @click="handleAdd"
+        >
           发布文章
         </el-button>
       </div>
@@ -23,17 +28,29 @@
             @keyup.enter="handleSearch"
           />
         </el-form-item>
+        <el-form-item label="作者">
+          <el-input
+            v-model="searchForm.authorName"
+            placeholder="请输入作者名称"
+            clearable
+            @keyup.enter="handleSearch"
+          />
+        </el-form-item>
         <el-form-item label="分类">
           <el-select v-model="searchForm.categoryId" placeholder="请选择分类" clearable>
-            <el-option label="技术分享" value="1" />
-            <el-option label="产品介绍" value="2" />
-            <el-option label="公司动态" value="3" />
+            <el-option 
+              v-for="category in categoryOptions" 
+              :key="category.id" 
+              :label="category.name" 
+              :value="category.id" 
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
-            <el-option label="已发布" value="1" />
-            <el-option label="草稿" value="0" />
+            <el-option label="草稿" :value="0" />
+            <el-option label="已发布" :value="1" />
+            <el-option label="已下架" :value="2" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -74,43 +91,94 @@
             <el-tag type="primary">{{ row.categoryName }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="author" label="作者" width="120" />
+        <el-table-column prop="authorName" label="作者" width="120" />
         <el-table-column prop="viewCount" label="浏览量" width="100" align="center" />
+        <el-table-column prop="isTop" label="置顶" width="80" align="center">
+          <template #default="{ row }">
+            <el-tag v-if="row.isTop === 1" type="danger" size="small">置顶</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="isRecommend" label="推荐" width="80" align="center">
+          <template #default="{ row }">
+            <el-tag v-if="row.isRecommend === 1" type="warning" size="small">推荐</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" width="100" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'warning'">
-              {{ row.status === 1 ? '已发布' : '草稿' }}
+            <el-tag :type="getStatusType(row.status)">
+              {{ getStatusText(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="publishTime" label="发布时间" width="180" />
         <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column label="操作" width="300" fixed="right">
           <template #default="{ row }">
             <el-button
               type="primary"
               link
-              :icon="View"
+              size="small"
               @click="handleView(row)"
             >
               预览
             </el-button>
             <el-button
+              v-permission="'article:edit'"
               type="warning"
               link
-              :icon="Edit"
+              size="small"
               @click="handleEdit(row)"
             >
               编辑
             </el-button>
             <el-button
-              type="danger"
+              v-if="row.status === 0"
+              v-permission="'article:publish'"
+              type="success"
               link
-              :icon="Delete"
-              @click="handleDelete(row)"
+              size="small"
+              @click="handlePublish(row)"
             >
-              删除
+              发布
             </el-button>
+            <el-button
+              v-else-if="row.status === 1"
+              v-permission="'article:publish'"
+              type="info"
+              link
+              size="small"
+              @click="handleUnpublish(row)"
+            >
+              下架
+            </el-button>
+            <el-dropdown @command="handleMoreActions" v-if="hasAnyOperationPermission">
+              <el-button type="info" link size="small">
+                更多 <el-icon><arrow-down /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    v-permission="'article:top'"
+                    :command="`top-${row.id}`"
+                  >
+                    {{ row.isTop === 1 ? '取消置顶' : '设为置顶' }}
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    v-permission="'article:recommend'"
+                    :command="`recommend-${row.id}`"
+                  >
+                    {{ row.isRecommend === 1 ? '取消推荐' : '设为推荐' }}
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    v-permission="'article:delete'"
+                    :command="`delete-${row.id}`"
+                    divided
+                  >
+                    删除
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -132,9 +200,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search, Refresh, View, Edit, Delete } from '@element-plus/icons-vue'
+import { Plus, Search, Refresh, View, Edit, Delete, ArrowDown } from '@element-plus/icons-vue'
+import { articleApi, categoryApi } from '@/api/system'
+import { usePermission } from '@/directives/permission'
+
+// 权限检查
+const { hasPermission, hasAnyPermission } = usePermission()
+
+// 检查是否有任何操作权限（用于显示更多菜单）
+const hasAnyOperationPermission = computed(() => {
+  return hasAnyPermission(['article:top', 'article:recommend', 'article:delete'])
+})
 
 // 响应式数据
 const loading = ref(false)
@@ -143,7 +221,8 @@ const loading = ref(false)
 const searchForm = reactive({
   title: '',
   categoryId: '',
-  status: ''
+  status: '',
+  authorName: ''
 })
 
 // 分页数据
@@ -153,57 +232,11 @@ const pagination = reactive({
   total: 0
 })
 
+// 分类选项
+const categoryOptions = ref<any[]>([])
+
 // 表格数据
-const tableData = ref([
-  {
-    id: 1,
-    title: 'Vue3 + TypeScript 开发实践指南',
-    categoryId: 1,
-    categoryName: '技术分享',
-    author: '张三',
-    coverImage: 'https://picsum.photos/200/150?random=1',
-    viewCount: 1256,
-    status: 1,
-    publishTime: '2024-01-01 10:00:00',
-    createTime: '2023-12-28 15:30:00'
-  },
-  {
-    id: 2,
-    title: 'Nextera产品功能详细介绍',
-    categoryId: 2,
-    categoryName: '产品介绍',
-    author: '李四',
-    coverImage: 'https://picsum.photos/200/150?random=2',
-    viewCount: 856,
-    status: 1,
-    publishTime: '2024-01-02 14:20:00',
-    createTime: '2024-01-01 09:15:00'
-  },
-  {
-    id: 3,
-    title: '公司2024年发展规划',
-    categoryId: 3,
-    categoryName: '公司动态',
-    author: '王五',
-    coverImage: null,
-    viewCount: 432,
-    status: 0,
-    publishTime: null,
-    createTime: '2024-01-03 11:45:00'
-  },
-  {
-    id: 4,
-    title: 'React vs Vue 框架对比分析',
-    categoryId: 1,
-    categoryName: '技术分享',
-    author: '赵六',
-    coverImage: 'https://picsum.photos/200/150?random=4',
-    viewCount: 678,
-    status: 1,
-    publishTime: '2024-01-04 16:30:00',
-    createTime: '2024-01-03 20:10:00'
-  }
-])
+const tableData = ref<any[]>([])
 
 // 方法
 const handleSearch = () => {
@@ -215,17 +248,44 @@ const handleReset = () => {
   Object.assign(searchForm, {
     title: '',
     categoryId: '',
-    status: ''
+    status: '',
+    authorName: ''
   })
   handleSearch()
 }
 
-const loadTableData = () => {
-  loading.value = true
-  setTimeout(() => {
-    pagination.total = tableData.value.length
+const loadTableData = async () => {
+  try {
+    loading.value = true
+    const params = {
+      current: pagination.current,
+      size: pagination.pageSize,
+      ...searchForm
+    }
+    
+    const response = await articleApi.getArticleList(params)
+    
+    if (response.code === 200) {
+      tableData.value = response.data.records
+      pagination.total = response.data.total
+    }
+  } catch (error) {
+    console.error('加载文章列表失败:', error)
+    ElMessage.error('加载文章列表失败')
+  } finally {
     loading.value = false
-  }, 500)
+  }
+}
+
+const loadCategoryOptions = async () => {
+  try {
+    const response = await categoryApi.getEnabledCategories()
+    if (response.code === 200) {
+      categoryOptions.value = response.data
+    }
+  } catch (error) {
+    console.error('加载分类选项失败:', error)
+  }
 }
 
 const handleAdd = () => {
@@ -267,8 +327,99 @@ const handleCurrentChange = (current: number) => {
   loadTableData()
 }
 
+// 状态相关方法
+const getStatusType = (status: number) => {
+  switch (status) {
+    case 0: return 'warning'
+    case 1: return 'success'
+    case 2: return 'danger'
+    default: return 'info'
+  }
+}
+
+const getStatusText = (status: number) => {
+  switch (status) {
+    case 0: return '草稿'
+    case 1: return '已发布'
+    case 2: return '已下架'
+    default: return '未知'
+  }
+}
+
+// 发布文章
+const handlePublish = async (row: any) => {
+  try {
+    // await articleApi.publishArticle(row.id)
+    row.status = 1
+    row.publishTime = new Date().toLocaleString()
+    ElMessage.success('发布成功')
+  } catch (error) {
+    console.error('发布失败:', error)
+    ElMessage.error('发布失败')
+  }
+}
+
+// 下架文章
+const handleUnpublish = async (row: any) => {
+  try {
+    // await articleApi.unpublishArticle(row.id)
+    row.status = 2
+    ElMessage.success('下架成功')
+  } catch (error) {
+    console.error('下架失败:', error)
+    ElMessage.error('下架失败')
+  }
+}
+
+// 更多操作
+const handleMoreActions = async (command: string) => {
+  const [action, id] = command.split('-')
+  const row = tableData.value.find(item => item.id === parseInt(id))
+  
+  if (!row) return
+  
+  try {
+    switch (action) {
+      case 'top':
+        const newTopStatus = row.isTop === 1 ? 0 : 1
+        // await articleApi.setArticleTop(row.id, newTopStatus)
+        row.isTop = newTopStatus
+        ElMessage.success(newTopStatus === 1 ? '置顶成功' : '取消置顶成功')
+        break
+        
+      case 'recommend':
+        const newRecommendStatus = row.isRecommend === 1 ? 0 : 1
+        // await articleApi.setArticleRecommend(row.id, newRecommendStatus)
+        row.isRecommend = newRecommendStatus
+        ElMessage.success(newRecommendStatus === 1 ? '推荐成功' : '取消推荐成功')
+        break
+        
+      case 'delete':
+        await ElMessageBox.confirm(
+          `确定要删除文章 "${row.title}" 吗？`,
+          '删除确认',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+        // await articleApi.deleteArticle(row.id)
+        ElMessage.success('删除成功')
+        loadTableData()
+        break
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('操作失败:', error)
+      ElMessage.error('操作失败')
+    }
+  }
+}
+
 onMounted(() => {
   loadTableData()
+  loadCategoryOptions()
 })
 </script>
 

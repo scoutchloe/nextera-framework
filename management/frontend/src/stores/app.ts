@@ -10,12 +10,29 @@ export const useAppStore = defineStore('app', () => {
   const loading = ref(false)
   const breadcrumbs = ref<Array<{ title: string; path?: string }>>([])
 
+  // 屏幕尺寸状态
+  const screenWidth = ref(window.innerWidth)
+  const screenHeight = ref(window.innerHeight)
+
   // 计算属性
   const isDark = computed(() => theme.value === 'dark')
   const isCollapsed = computed(() => sidebarStatus.value === 'closed')
   const isMobile = computed(() => device.value === 'mobile')
   const isTablet = computed(() => device.value === 'tablet')
   const isDesktop = computed(() => device.value === 'desktop')
+  
+  // 屏幕尺寸计算属性
+  const isSmallMobile = computed(() => screenWidth.value < 480)
+  const isMediumMobile = computed(() => screenWidth.value >= 480 && screenWidth.value < 768)
+  const isSmallTablet = computed(() => screenWidth.value >= 768 && screenWidth.value < 1024)
+  const isLargeTablet = computed(() => screenWidth.value >= 1024 && screenWidth.value < 1280)
+  const isSmallDesktop = computed(() => screenWidth.value >= 1280 && screenWidth.value < 1440)
+  const isLargeDesktop = computed(() => screenWidth.value >= 1440 && screenWidth.value < 1920)
+  const isXLDesktop = computed(() => screenWidth.value >= 1920)
+  
+  // 横屏检测
+  const isLandscape = computed(() => screenWidth.value > screenHeight.value)
+  const isPortrait = computed(() => screenWidth.value <= screenHeight.value)
 
   // 从localStorage恢复配置
   const initApp = () => {
@@ -40,7 +57,7 @@ export const useAppStore = defineStore('app', () => {
     detectDevice()
     
     // 监听窗口大小变化
-    window.addEventListener('resize', detectDevice)
+    window.addEventListener('resize', handleResize)
     
     // 监听系统主题变化
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
@@ -49,6 +66,20 @@ export const useAppStore = defineStore('app', () => {
         applyTheme(e.matches ? 'dark' : 'light')
       }
     })
+
+    // 监听设备方向变化
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        detectDevice()
+      }, 100)
+    })
+  }
+
+  // 处理窗口大小变化
+  const handleResize = () => {
+    screenWidth.value = window.innerWidth
+    screenHeight.value = window.innerHeight
+    detectDevice()
   }
 
   // 设置主题
@@ -102,17 +133,46 @@ export const useAppStore = defineStore('app', () => {
   // 检测设备类型
   const detectDevice = () => {
     const width = window.innerWidth
+    const height = window.innerHeight
+    const userAgent = navigator.userAgent.toLowerCase()
     
-    if (width < 768) {
+    // 更新屏幕尺寸
+    screenWidth.value = width
+    screenHeight.value = height
+    
+    // 检测是否为触摸设备
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+    
+    // 检测设备类型
+    const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent)
+    const isTabletUA = /ipad|android(?!.*mobile)|tablet/i.test(userAgent)
+    
+    if (width < 768 || (isMobileUA && !isTabletUA)) {
       device.value = 'mobile'
       // 移动设备自动收起侧边栏
       if (sidebarStatus.value === 'opened') {
         setSidebarStatus('closed')
       }
-    } else if (width < 1024) {
+    } else if (width < 1024 || (isTabletUA && isTouchDevice)) {
       device.value = 'tablet'
+      // 平板设备在竖屏时收起侧边栏
+      if (width < height && sidebarStatus.value === 'opened') {
+        setSidebarStatus('closed')
+      }
     } else {
       device.value = 'desktop'
+      // 桌面设备在足够宽度时展开侧边栏
+      if (width >= 1280 && sidebarStatus.value === 'closed') {
+        const storedSidebarStatus = localStorage.getItem('sidebarStatus') as SidebarStatus
+        if (!storedSidebarStatus || storedSidebarStatus === 'opened') {
+          setSidebarStatus('opened')
+        }
+      }
+    }
+
+    // 特殊处理：横屏移动设备
+    if (isMobile.value && width > height && width >= 640) {
+      // 在横屏模式下，可以考虑显示更多内容
     }
   }
 
@@ -136,6 +196,24 @@ export const useAppStore = defineStore('app', () => {
     breadcrumbs.value = []
   }
 
+  // 获取当前断点信息
+  const getBreakpointInfo = () => {
+    return {
+      width: screenWidth.value,
+      height: screenHeight.value,
+      device: device.value,
+      isSmallMobile: isSmallMobile.value,
+      isMediumMobile: isMediumMobile.value,
+      isSmallTablet: isSmallTablet.value,
+      isLargeTablet: isLargeTablet.value,
+      isSmallDesktop: isSmallDesktop.value,
+      isLargeDesktop: isLargeDesktop.value,
+      isXLDesktop: isXLDesktop.value,
+      isLandscape: isLandscape.value,
+      isPortrait: isPortrait.value
+    }
+  }
+
   return {
     // 状态
     theme,
@@ -143,6 +221,8 @@ export const useAppStore = defineStore('app', () => {
     device,
     loading,
     breadcrumbs,
+    screenWidth,
+    screenHeight,
     
     // 计算属性
     isDark,
@@ -150,6 +230,15 @@ export const useAppStore = defineStore('app', () => {
     isMobile,
     isTablet,
     isDesktop,
+    isSmallMobile,
+    isMediumMobile,
+    isSmallTablet,
+    isLargeTablet,
+    isSmallDesktop,
+    isLargeDesktop,
+    isXLDesktop,
+    isLandscape,
+    isPortrait,
     
     // 方法
     initApp,
@@ -161,6 +250,7 @@ export const useAppStore = defineStore('app', () => {
     setLoading,
     setBreadcrumbs,
     addBreadcrumb,
-    clearBreadcrumbs
+    clearBreadcrumbs,
+    getBreakpointInfo
   }
 }) 

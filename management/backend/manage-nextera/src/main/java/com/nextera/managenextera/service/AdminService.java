@@ -8,6 +8,7 @@ import com.nextera.managenextera.dto.LoginRequest;
 import com.nextera.managenextera.dto.LoginResponse;
 import com.nextera.managenextera.dto.SysPermissionDTO;
 import com.nextera.managenextera.entity.Admin;
+import com.nextera.managenextera.entity.SysRole;
 
 import java.util.List;
 
@@ -75,4 +76,14 @@ public interface AdminService extends IService<Admin> {
      * 获取管理员权限列表
      */
     List<SysPermissionDTO> getAdminPermissions(Long adminId);
+    
+    /**
+     * 获取管理员角色列表
+     */
+    List<SysRole> getAdminRoles(Long adminId);
+    
+    /**
+     * 分配管理员角色
+     */
+    boolean assignAdminRoles(Long adminId, List<Long> roleIds);
 } 
