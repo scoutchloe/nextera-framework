@@ -2,8 +2,8 @@
   <div class="category-management">
     <div class="page-header">
       <div class="header-title">
-        <h2>分类管理</h2>
-        <p>管理文章分类信息</p>
+        <h2>{{ t('article.category.title') }}</h2>
+        <p>{{ t('article.category.subtitle') }}</p>
       </div>
       <div class="header-actions">
         <el-button 
@@ -12,7 +12,7 @@
           :icon="Plus" 
           @click="handleAdd"
         >
-          新增分类
+          {{ t('article.category.addCategory') }}
         </el-button>
       </div>
     </div>
@@ -20,26 +20,26 @@
     <!-- 搜索栏 -->
     <div class="search-bar">
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="分类名称">
+        <el-form-item :label="t('article.category.nameLabel')">
           <el-input
             v-model="searchForm.name"
-            placeholder="请输入分类名称"
+            :placeholder="t('article.category.namePlaceholder')"
             clearable
             @keyup.enter="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
-            <el-option label="启用" :value="1" />
-            <el-option label="禁用" :value="0" />
+        <el-form-item :label="t('article.category.statusLabel')">
+          <el-select v-model="searchForm.status" :placeholder="t('article.category.statusPlaceholder')" clearable>
+            <el-option :label="t('common.enable')" :value="1" />
+            <el-option :label="t('common.disable')" :value="0" />
           </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="handleSearch">
-            搜索
+            {{ t('common.search') }}
           </el-button>
           <el-button :icon="Refresh" @click="handleReset">
-            重置
+            {{ t('common.reset') }}
           </el-button>
         </el-form-item>
       </el-form>
@@ -54,24 +54,24 @@
         row-key="id"
         stripe
       >
-        <el-table-column prop="name" label="分类名称" width="200" />
-        <el-table-column prop="description" label="描述" min-width="300" show-overflow-tooltip />
-        <el-table-column prop="parentName" label="父分类" width="150" align="center">
+        <el-table-column prop="name" :label="t('article.category.categoryName')" width="200" />
+        <el-table-column prop="description" :label="t('article.category.description')" min-width="300" show-overflow-tooltip />
+        <el-table-column prop="parentName" :label="t('article.category.parentName')" width="150" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.parentName" type="info" size="small">{{ row.parentName }}</el-tag>
-            <span v-else class="text-muted">顶级分类</span>
+            <span v-else class="text-muted">{{ t('article.category.topLevel') }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="sortOrder" label="排序" width="100" align="center" />
-        <el-table-column prop="status" label="状态" width="100" align="center">
+        <el-table-column prop="sortOrder" :label="t('article.category.sortOrder')" width="100" align="center" />
+        <el-table-column prop="status" :label="t('common.status')" width="100" align="center">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'danger'">
-              {{ row.status === 1 ? '启用' : '禁用' }}
+              {{ row.status === 1 ? t('common.enable') : t('common.disable') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column prop="createTime" :label="t('common.createTime')" width="180" />
+        <el-table-column :label="t('common.operation')" width="240" fixed="right">
           <template #default="{ row }">
             <el-button
               v-permission="'article:category:edit'"
@@ -80,7 +80,7 @@
               size="small"
               @click="handleEdit(row)"
             >
-              编辑
+              {{ t('article.category.edit') }}
             </el-button>
             <el-button
               v-permission="'article:category:edit'"
@@ -89,7 +89,7 @@
               size="small"
               @click="handleStatusChange(row)"
             >
-              {{ row.status === 1 ? '禁用' : '启用' }}
+              {{ row.status === 1 ? t('article.category.disable') : t('article.category.enable') }}
             </el-button>
             <el-button
               v-permission="'article:category:delete'"
@@ -98,7 +98,7 @@
               size="small"
               @click="handleDelete(row)"
             >
-              删除
+              {{ t('article.category.delete') }}
             </el-button>
           </template>
         </el-table-column>
@@ -124,7 +124,10 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete, Search, Refresh } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 import { categoryApi } from '@/api/system'
+
+const { t } = useI18n()
 
 // 响应式数据
 const loading = ref(false)

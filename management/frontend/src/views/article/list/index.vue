@@ -2,8 +2,8 @@
   <div class="article-list">
     <div class="page-header">
       <div class="header-title">
-        <h2>文章列表</h2>
-        <p>管理系统文章内容</p>
+        <h2>{{ $t('article.list.title') }}</h2>
+        <p>{{ $t('article.list.subtitle') }}</p>
       </div>
       <div class="header-actions">
         <el-button 
@@ -12,7 +12,7 @@
           :icon="Plus" 
           @click="handleAdd"
         >
-          发布文章
+          {{ $t('article.list.publishArticle') }}
         </el-button>
       </div>
     </div>
@@ -20,24 +20,24 @@
     <!-- 搜索栏 -->
     <div class="search-bar">
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="文章标题">
+        <el-form-item :label="$t('article.list.titleLabel')">
           <el-input
             v-model="searchForm.title"
-            placeholder="请输入文章标题"
+            :placeholder="$t('article.list.titlePlaceholder')"
             clearable
             @keyup.enter="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="作者">
+        <el-form-item :label="$t('article.list.authorLabel')">
           <el-input
             v-model="searchForm.authorName"
-            placeholder="请输入作者名称"
+            :placeholder="$t('article.list.authorPlaceholder')"
             clearable
             @keyup.enter="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="分类">
-          <el-select v-model="searchForm.categoryId" placeholder="请选择分类" clearable>
+        <el-form-item :label="$t('article.list.categoryLabel')">
+          <el-select v-model="searchForm.categoryId" :placeholder="$t('article.list.categoryPlaceholder')" clearable>
             <el-option 
               v-for="category in categoryOptions" 
               :key="category.id" 
@@ -46,19 +46,19 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
-            <el-option label="草稿" :value="0" />
-            <el-option label="已发布" :value="1" />
-            <el-option label="已下架" :value="2" />
+        <el-form-item :label="$t('article.list.statusLabel')">
+          <el-select v-model="searchForm.status" :placeholder="$t('article.list.statusPlaceholder')" clearable>
+            <el-option :label="$t('article.list.draft')" :value="0" />
+            <el-option :label="$t('article.list.published')" :value="1" />
+            <el-option :label="$t('article.list.unpublished')" :value="2" />
           </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="handleSearch">
-            搜索
+            {{ $t('common.search') }}
           </el-button>
           <el-button :icon="Refresh" @click="handleReset">
-            重置
+            {{ $t('common.reset') }}
           </el-button>
         </el-form-item>
       </el-form>
@@ -73,7 +73,7 @@
         row-key="id"
         stripe
       >
-        <el-table-column prop="coverImage" label="封面" width="100">
+        <el-table-column prop="coverImage" :label="$t('article.list.cover')" width="100">
           <template #default="{ row }">
             <el-image
               v-if="row.coverImage"
@@ -82,37 +82,37 @@
               fit="cover"
               style="width: 60px; height: 40px; border-radius: 4px;"
             />
-            <div v-else class="no-image">无封面</div>
+            <div v-else class="no-image">{{ $t('article.list.noCover') }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="categoryName" label="分类" width="120" align="center">
+        <el-table-column prop="title" :label="$t('article.list.articleTitle')" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="categoryName" :label="$t('article.list.category')" width="120" align="center">
           <template #default="{ row }">
             <el-tag type="primary">{{ row.categoryName }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="authorName" label="作者" width="120" />
-        <el-table-column prop="viewCount" label="浏览量" width="100" align="center" />
-        <el-table-column prop="isTop" label="置顶" width="80" align="center">
+        <el-table-column prop="authorName" :label="$t('article.list.author')" width="120" />
+        <el-table-column prop="viewCount" :label="$t('article.list.viewCount')" width="100" align="center" />
+        <el-table-column prop="isTop" :label="$t('article.list.isTop')" width="80" align="center">
           <template #default="{ row }">
-            <el-tag v-if="row.isTop === 1" type="danger" size="small">置顶</el-tag>
+            <el-tag v-if="row.isTop === 1" type="danger" size="small">{{ $t('article.list.topTag') }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="isRecommend" label="推荐" width="80" align="center">
+        <el-table-column prop="isRecommend" :label="$t('article.list.isRecommend')" width="80" align="center">
           <template #default="{ row }">
-            <el-tag v-if="row.isRecommend === 1" type="warning" size="small">推荐</el-tag>
+            <el-tag v-if="row.isRecommend === 1" type="warning" size="small">{{ $t('article.list.recommendTag') }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="100" align="center">
+        <el-table-column prop="status" :label="$t('article.list.status')" width="100" align="center">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">
               {{ getStatusText(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="publishTime" label="发布时间" width="180" />
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="300" fixed="right">
+        <el-table-column prop="publishTime" :label="$t('article.list.publishTime')" width="180" />
+        <el-table-column prop="createTime" :label="$t('article.list.createTime')" width="180" />
+        <el-table-column :label="$t('article.list.operation')" width="300" fixed="right">
           <template #default="{ row }">
             <el-button
               type="primary"
@@ -120,7 +120,7 @@
               size="small"
               @click="handleView(row)"
             >
-              预览
+              {{ $t('article.list.preview') }}
             </el-button>
             <el-button
               v-permission="'article:edit'"
@@ -129,7 +129,7 @@
               size="small"
               @click="handleEdit(row)"
             >
-              编辑
+              {{ $t('article.list.edit') }}
             </el-button>
             <el-button
               v-if="row.status === 0"
@@ -139,7 +139,7 @@
               size="small"
               @click="handlePublish(row)"
             >
-              发布
+              {{ $t('article.list.publish') }}
             </el-button>
             <el-button
               v-else-if="row.status === 1"
@@ -149,11 +149,11 @@
               size="small"
               @click="handleUnpublish(row)"
             >
-              下架
+              {{ $t('article.list.unpublish') }}
             </el-button>
             <el-dropdown @command="handleMoreActions" v-if="hasAnyOperationPermission">
               <el-button type="info" link size="small">
-                更多 <el-icon><arrow-down /></el-icon>
+                {{ $t('article.list.more') }} <el-icon><arrow-down /></el-icon>
               </el-button>
               <template #dropdown>
                 <el-dropdown-menu>
@@ -161,20 +161,20 @@
                     v-permission="'article:top'"
                     :command="`top-${row.id}`"
                   >
-                    {{ row.isTop === 1 ? '取消置顶' : '设为置顶' }}
+                    {{ row.isTop === 1 ? $t('article.list.cancelTop') : $t('article.list.setTop') }}
                   </el-dropdown-item>
                   <el-dropdown-item
                     v-permission="'article:recommend'"
                     :command="`recommend-${row.id}`"
                   >
-                    {{ row.isRecommend === 1 ? '取消推荐' : '设为推荐' }}
+                    {{ row.isRecommend === 1 ? $t('article.list.cancelRecommend') : $t('article.list.setRecommend') }}
                   </el-dropdown-item>
                   <el-dropdown-item
                     v-permission="'article:delete'"
                     :command="`delete-${row.id}`"
                     divided
                   >
-                    删除
+                    {{ $t('article.list.delete') }}
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -205,9 +205,11 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Refresh, View, Edit, Delete, ArrowDown } from '@element-plus/icons-vue'
 import { articleApi, categoryApi } from '@/api/system'
 import { usePermission } from '@/directives/permission'
+import { useI18n } from '@/composables/useI18n'
 
 // 权限检查
 const { hasPermission, hasAnyPermission } = usePermission()
+const { t } = useI18n()
 
 // 检查是否有任何操作权限（用于显示更多菜单）
 const hasAnyOperationPermission = computed(() => {
@@ -339,10 +341,10 @@ const getStatusType = (status: number) => {
 
 const getStatusText = (status: number) => {
   switch (status) {
-    case 0: return '草稿'
-    case 1: return '已发布'
-    case 2: return '已下架'
-    default: return '未知'
+    case 0: return t('article.list.draft')
+    case 1: return t('article.list.published')
+    case 2: return t('article.list.unpublished')
+    default: return t('common.unknown')
   }
 }
 

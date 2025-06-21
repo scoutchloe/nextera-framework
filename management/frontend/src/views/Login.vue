@@ -15,9 +15,7 @@
           </div>
           <p class="welcome-title">欢迎登录管理平台</p>
           <p class="welcome-description">
-            专业的企业级管理系统，为您提供安全、
-            <p></p>
-            高效的数据管理解决方案
+            专业的企业级管理系统，为您提供安全、高效的数据管理解决方案
           </p>
           <div class="feature-list">
             <div class="feature-item">
@@ -39,8 +37,8 @@
       <!-- 右侧登录表单区域 -->
       <div class="form-section">
         <div class="form-header">
-          <h2>用户登录</h2>
-          <p>请输入您的账号信息</p>
+          <h2>{{ t('login.title') }}</h2>
+          <p>{{ t('login.subtitle') }}</p>
         </div>
         
         <!-- 登录表单 -->
@@ -53,34 +51,34 @@
           @keyup.enter="handleLogin"
         >
           <el-form-item prop="username">
-            <el-input
-              v-model="loginForm.username"
-              placeholder="请输入用户名"
-              prefix-icon="User"
-              clearable
-              :disabled="loading"
-            />
+                      <el-input
+            v-model="loginForm.username"
+            :placeholder="t('login.username')"
+            prefix-icon="User"
+            clearable
+            :disabled="loading"
+          />
           </el-form-item>
           
           <el-form-item prop="password">
-            <el-input
-              v-model="loginForm.password"
-              type="password"
-              placeholder="请输入密码"
-              prefix-icon="Lock"
-              show-password
-              clearable
-              :disabled="loading"
-            />
+                      <el-input
+            v-model="loginForm.password"
+            type="password"
+            :placeholder="t('login.password')"
+            prefix-icon="Lock"
+            show-password
+            clearable
+            :disabled="loading"
+          />
           </el-form-item>
           
           <!-- 选项 -->
           <div class="login-options">
             <el-checkbox v-model="loginForm.rememberMe" :disabled="loading">
-              记住我
+              {{ t('login.rememberMe') }}
             </el-checkbox>
             <el-link type="primary" @click="handleForgotPassword">
-              忘记密码？
+              {{ t('login.forgotPassword') }}
             </el-link>
           </div>
           
@@ -103,7 +101,7 @@
             :loading="loading"
             @click="handleLogin"
           >
-            {{ loading ? '登录中...' : '登录' }}
+            {{ loading ? t('login.loggingIn') : t('login.loginBtn') }}
           </el-button>
           
           <!-- 简单测试按钮 -->
@@ -140,11 +138,13 @@ import { Check, Avatar } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { useAppStore } from '@/stores/app'
+import { useI18n } from '@/composables/useI18n'
 import type { LoginRequest } from '@/types'
 
 const router = useRouter()
 const userStore = useUserStore()
 const appStore = useAppStore()
+const { t } = useI18n()
 
 // 表单引用
 const loginFormRef = ref<FormInstance>()
@@ -159,12 +159,12 @@ const loginForm = reactive({
 // 表单验证规则
 const loginRules: FormRules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 2, max: 20, message: '用户名长度在 2 到 20 个字符', trigger: 'blur' }
+    { required: true, message: t('login.usernameRequired'), trigger: 'blur' },
+    { min: 2, max: 20, message: t('login.usernameLength'), trigger: 'blur' }
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' }
+    { required: true, message: t('login.passwordRequired'), trigger: 'blur' },
+    { min: 6, max: 20, message: t('login.passwordLength'), trigger: 'blur' }
   ]
 }
 
@@ -198,8 +198,8 @@ const handleLogin = async () => {
     console.log('登录成功，用户Store状态已更新')
     
     ElNotification({
-      title: '登录成功',
-      message: '欢迎回来！正在跳转到主页...',
+      title: t('login.loginSuccess'),
+      message: t('login.welcomeBack'),
       type: 'success',
       position: 'top-right'
     })
@@ -212,7 +212,7 @@ const handleLogin = async () => {
 
   } catch (error: any) {
     console.error('登录失败:', error)
-    ElMessage.error(error?.message || '登录失败，请检查用户名和密码')
+    ElMessage.error(error?.message || t('login.loginFailed'))
   } finally {
     loading.value = false
   }
@@ -249,7 +249,7 @@ const testConnection = async () => {
 
 // 忘记密码
 const handleForgotPassword = () => {
-  ElMessage.info('请联系管理员重置密码')
+  ElMessage.info(t('login.contactAdmin'))
 }
 
 onMounted(() => {

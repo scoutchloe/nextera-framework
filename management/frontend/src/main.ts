@@ -8,6 +8,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
 import { setupPermissionDirectives } from '@/directives/permission'
+import i18n from '@/i18n'
 
 // 导入全局样式
 // import '@/styles/variables.scss'
@@ -30,6 +31,7 @@ const pinia = createPinia()
 // 使用插件
 app.use(pinia)
 app.use(router)
+app.use(i18n)
 app.use(ElementPlus, {
   size: 'default',
   zIndex: 3000,
@@ -45,6 +47,9 @@ const initializeApp = async () => {
     // 初始化应用store
     const appStore = useAppStore()
     appStore.initApp()
+    
+    // 同步语言设置到 i18n
+    i18n.global.locale.value = appStore.locale
     
     // 初始化用户store
     const userStore = useUserStore()

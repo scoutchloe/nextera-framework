@@ -2,12 +2,12 @@
   <div class="role-management" style="width: 100%; height: 100%; min-height: 500px; background: white; padding: 20px;">
     <div class="page-header">
       <div class="header-title">
-        <h2>角色管理</h2>
-        <p>管理系统角色信息，分配权限</p>
+        <h2>{{ t('system.role.title') }}</h2>
+        <p>{{ t('system.role.subtitle') }}</p>
       </div>
       <div class="header-actions">
         <el-button type="primary" :icon="Plus" @click="handleAdd">
-          新增角色
+          {{ t('system.role.addRole') }}
         </el-button>
       </div>
     </div>
@@ -15,26 +15,26 @@
     <!-- 搜索栏 -->
     <div class="search-bar">
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="角色名称">
+        <el-form-item :label="t('system.role.roleNameLabel')">
           <el-input
             v-model="searchForm.roleName"
-            placeholder="请输入角色名称"
+            :placeholder="t('system.role.roleNamePlaceholder')"
             clearable
             @keyup.enter="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
-            <el-option label="启用" value="1" />
-            <el-option label="禁用" value="0" />
+        <el-form-item :label="t('system.role.statusLabel')">
+          <el-select v-model="searchForm.status" :placeholder="t('system.role.statusPlaceholder')" clearable>
+            <el-option :label="t('system.role.enabled')" value="1" />
+            <el-option :label="t('system.role.disabled')" value="0" />
           </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="handleSearch">
-            搜索
+            {{ t('common.search') }}
           </el-button>
           <el-button :icon="Refresh" @click="handleReset">
-            重置
+            {{ t('common.reset') }}
           </el-button>
         </el-form-item>
       </el-form>
@@ -51,30 +51,30 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="id" label="角色ID" width="100" />
-        <el-table-column prop="roleName" label="角色名称" min-width="150" />
-        <el-table-column prop="roleCode" label="角色编码" min-width="150" />
-        <el-table-column prop="description" label="描述" min-width="200">
+        <el-table-column prop="id" :label="t('system.role.roleId')" width="100" />
+        <el-table-column prop="roleName" :label="t('system.role.roleName')" min-width="150" />
+        <el-table-column prop="roleCode" :label="t('system.role.roleCode')" min-width="150" />
+        <el-table-column prop="description" :label="t('system.role.description')" min-width="200">
           <template #default="{ row }">
             <div class="description-content">
               <div class="description-text">{{ row.description }}</div>
               <div class="permission-count" v-if="row.permissionCount !== undefined">
                 <el-tag size="small" type="info">
-                  {{ row.permissionCount || 0 }}个权限
+                  {{ row.permissionCount || 0 }}{{ t('system.role.permissionCount') }}
                 </el-tag>
               </div>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="100" align="center">
+        <el-table-column prop="status" :label="t('system.role.status')" width="100" align="center">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'danger'">
-              {{ row.status === 1 ? '启用' : '禁用' }}
+              {{ row.status === 1 ? t('system.role.enabled') : t('system.role.disabled') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column prop="createTime" :label="t('system.role.createTime')" width="180" />
+        <el-table-column :label="t('system.role.operations')" width="200" fixed="right">
           <template #default="{ row }">
             <el-button
               type="primary"
@@ -82,7 +82,7 @@
               :icon="Edit"
               @click="handleEdit(row)"
             >
-              编辑
+              {{ t('system.role.edit') }}
             </el-button>
             <el-button
               type="primary"
@@ -90,7 +90,7 @@
               :icon="Key"
               @click="handlePermission(row)"
             >
-              权限
+              {{ t('system.role.permission') }}
             </el-button>
             <el-button
               type="danger"
@@ -98,7 +98,7 @@
               :icon="Delete"
               @click="handleDelete(row)"
             >
-              删除
+              {{ t('system.role.delete') }}
             </el-button>
           </template>
         </el-table-column>
@@ -131,32 +131,32 @@
         :rules="formRules"
         label-width="100px"
       >
-        <el-form-item label="角色名称" prop="roleName">
-          <el-input v-model="formData.roleName" placeholder="请输入角色名称" />
+        <el-form-item :label="t('system.role.roleNameFormLabel')" prop="roleName">
+          <el-input v-model="formData.roleName" :placeholder="t('system.role.roleNameFormPlaceholder')" />
         </el-form-item>
-        <el-form-item label="角色编码" prop="roleCode">
-          <el-input v-model="formData.roleCode" placeholder="请输入角色编码" />
+        <el-form-item :label="t('system.role.roleCodeFormLabel')" prop="roleCode">
+          <el-input v-model="formData.roleCode" :placeholder="t('system.role.roleCodeFormPlaceholder')" />
         </el-form-item>
-        <el-form-item label="描述" prop="description">
+        <el-form-item :label="t('system.role.descriptionFormLabel')" prop="description">
           <el-input
             v-model="formData.description"
             type="textarea"
             :rows="3"
-            placeholder="请输入角色描述"
+            :placeholder="t('system.role.descriptionFormPlaceholder')"
           />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
+        <el-form-item :label="t('system.role.statusFormLabel')" prop="status">
           <el-radio-group v-model="formData.status">
-            <el-radio :label="1">启用</el-radio>
-            <el-radio :label="0">禁用</el-radio>
+            <el-radio :label="1">{{ t('system.role.enableLabel') }}</el-radio>
+            <el-radio :label="0">{{ t('system.role.disableLabel') }}</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="handleDialogClose">取消</el-button>
+          <el-button @click="handleDialogClose">{{ t('common.cancel') }}</el-button>
           <el-button type="primary" @click="handleSubmit" :loading="submitLoading">
-            确定
+            {{ t('common.confirm') }}
           </el-button>
         </div>
       </template>
@@ -236,6 +236,9 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Refresh, Edit, Delete, Key } from '@element-plus/icons-vue'
 import type { FormInstance } from 'element-plus'
 import { roleApi, permissionApi } from '@/api/system'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 // 响应式数据
 const loading = ref(false)

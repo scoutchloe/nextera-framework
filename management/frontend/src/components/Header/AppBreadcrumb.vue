@@ -22,10 +22,32 @@
 import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
+import { useI18n } from '@/composables/useI18n'
 import type { BreadcrumbItem } from '@/types'
 
 const route = useRoute()
 const appStore = useAppStore()
+const { t } = useI18n()
+
+// 路由标题翻译映射
+const routeTitleMap: Record<string, string> = {
+  '首页': 'common.home',
+  '仪表盘': 'menu.dashboard',
+  '系统管理': 'menu.system',
+  '管理员管理': 'menu.admin',
+  '角色管理': 'menu.role',
+  '权限管理': 'menu.permission',
+  '操作日志': 'menu.log',
+  '用户管理': 'menu.user',
+  '用户列表': 'menu.userList',
+  '用户分析': 'menu.analysis',
+  '文章管理': 'menu.article',
+  '文章列表': 'menu.articleList',
+  '文章分类': 'menu.articleCategory',
+  '文章标签': 'menu.articleTag',
+  '订单管理': 'menu.order',
+  '订单列表': 'menu.orderList'
+}
 
 // 计算面包屑列表
 const breadcrumbList = computed<BreadcrumbItem[]>(() => {
@@ -35,7 +57,7 @@ const breadcrumbList = computed<BreadcrumbItem[]>(() => {
   // 添加首页
   const breadcrumbs: BreadcrumbItem[] = [
     {
-      title: '首页',
+      title: t('common.home'),
       path: '/dashboard',
       icon: 'HomeFilled'
     }
@@ -44,8 +66,12 @@ const breadcrumbList = computed<BreadcrumbItem[]>(() => {
   // 添加匹配的路由
   matched.forEach((match, index) => {
     if (match.meta?.title && match.path !== '/dashboard') {
+      const originalTitle = match.meta.title as string
+      const translationKey = routeTitleMap[originalTitle]
+      const title = translationKey ? t(translationKey) : originalTitle
+      
       breadcrumbs.push({
-        title: match.meta.title as string,
+        title,
         path: index === matched.length - 1 ? undefined : match.path,
         icon: match.meta.icon as string
       })

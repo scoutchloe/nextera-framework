@@ -2,15 +2,15 @@
   <div class="log-management">
     <div class="page-header">
       <div class="header-title">
-        <h2>操作日志</h2>
-        <p>查看系统操作记录，监控用户行为</p>
+        <h2>{{ t('system.log.title') }}</h2>
+        <p>{{ t('system.log.subtitle') }}</p>
       </div>
       <div class="header-actions">
         <el-button type="primary" :icon="Download" @click="handleExport">
-          导出日志
+          {{ t('system.log.exportLog') }}
         </el-button>
         <el-button type="danger" :icon="Delete" @click="handleClear">
-          清空日志
+          {{ t('system.log.clearLog') }}
         </el-button>
       </div>
     </div>
@@ -18,50 +18,50 @@
     <!-- 搜索栏 -->
     <div class="search-bar">
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="操作人员">
+        <el-form-item :label="t('system.log.operatorLabel')">
           <el-input
             v-model="searchForm.username"
-            placeholder="请输入操作人员"
+            :placeholder="t('system.log.operatorPlaceholder')"
             clearable
             @keyup.enter="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="操作类型">
-          <el-select v-model="searchForm.operation" placeholder="请选择操作类型" clearable>
-            <el-option label="登录" value="login" />
-            <el-option label="登出" value="logout" />
-            <el-option label="新增" value="create" />
-            <el-option label="修改" value="update" />
-            <el-option label="删除" value="delete" />
-            <el-option label="查询" value="query" />
+        <el-form-item :label="t('system.log.operationTypeLabel')">
+          <el-select v-model="searchForm.operation" :placeholder="t('system.log.operationTypePlaceholder')" clearable>
+            <el-option :label="t('system.log.operations.login')" value="login" />
+            <el-option :label="t('system.log.operations.logout')" value="logout" />
+            <el-option :label="t('system.log.operations.create')" value="create" />
+            <el-option :label="t('system.log.operations.update')" value="update" />
+            <el-option :label="t('system.log.operations.delete')" value="delete" />
+            <el-option :label="t('system.log.operations.query')" value="query" />
           </el-select>
         </el-form-item>
-        <el-form-item label="操作模块">
-          <el-select v-model="searchForm.module" placeholder="请选择操作模块" clearable>
-            <el-option label="用户管理" value="user" />
-            <el-option label="角色管理" value="role" />
-            <el-option label="权限管理" value="permission" />
-            <el-option label="文章管理" value="article" />
-            <el-option label="系统设置" value="system" />
+        <el-form-item :label="t('system.log.operationModuleLabel')">
+          <el-select v-model="searchForm.module" :placeholder="t('system.log.operationModulePlaceholder')" clearable>
+            <el-option :label="t('system.log.modules.user')" value="user" />
+            <el-option :label="t('system.log.modules.role')" value="role" />
+            <el-option :label="t('system.log.modules.permission')" value="permission" />
+            <el-option :label="t('system.log.modules.article')" value="article" />
+            <el-option :label="t('system.log.modules.system')" value="system" />
           </el-select>
         </el-form-item>
-        <el-form-item label="操作时间">
+        <el-form-item :label="t('system.log.operationTimeLabel')">
           <el-date-picker
             v-model="searchForm.dateRange"
             type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
+            :range-separator="t('system.log.dateRangeSeparator')"
+            :start-placeholder="t('system.log.startDatePlaceholder')"
+            :end-placeholder="t('system.log.endDatePlaceholder')"
             format="YYYY-MM-DD"
             value-format="YYYY-MM-DD"
           />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="handleSearch">
-            搜索
+            {{ t('common.search') }}
           </el-button>
           <el-button :icon="Refresh" @click="handleReset">
-            重置
+            {{ t('common.reset') }}
           </el-button>
         </el-form-item>
       </el-form>
@@ -78,50 +78,50 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="id" label="日志ID" width="100" />
-        <el-table-column prop="username" label="操作人员" width="120" />
-        <el-table-column prop="operation" label="操作类型" width="100" align="center">
+        <el-table-column prop="id" :label="t('system.log.logId')" width="100" />
+        <el-table-column prop="username" :label="t('system.log.username')" width="120" />
+        <el-table-column prop="operation" :label="t('system.log.operation')" width="100" align="center">
           <template #default="{ row }">
             <el-tag :type="getOperationTagType(row.operation)">
               {{ getOperationText(row.operation) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="module" label="操作模块" width="120" align="center">
+        <el-table-column prop="module" :label="t('system.log.module')" width="120" align="center">
           <template #default="{ row }">
             <el-tag type="info">
               {{ getModuleText(row.module) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="description" label="操作描述" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="method" label="请求方式" width="100" align="center">
+        <el-table-column prop="description" :label="t('system.log.description')" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="method" :label="t('system.log.method')" width="100" align="center">
           <template #default="{ row }">
             <el-tag size="small" :type="getMethodTagType(row.method)">
               {{ row.method }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="url" label="请求URL" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="ip" label="IP地址" width="140" />
-        <el-table-column prop="location" label="操作地点" width="120" show-overflow-tooltip />
-        <el-table-column prop="userAgent" label="浏览器" width="100" show-overflow-tooltip>
+        <el-table-column prop="url" :label="t('system.log.url')" min-width="180" show-overflow-tooltip />
+        <el-table-column prop="ip" :label="t('system.log.ip')" width="140" />
+        <el-table-column prop="location" :label="t('system.log.location')" width="120" show-overflow-tooltip />
+        <el-table-column prop="userAgent" :label="t('system.log.browser')" width="100" show-overflow-tooltip>
           <template #default="{ row }">
             <el-tooltip :content="row.userAgent" placement="top">
               <span>{{ getBrowserName(row.userAgent) }}</span>
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="操作状态" width="100" align="center">
+        <el-table-column prop="status" :label="t('system.log.status')" width="100" align="center">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'danger'">
-              {{ row.status === 1 ? '成功' : '失败' }}
+              {{ row.status === 1 ? t('system.log.success') : t('system.log.failed') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="costTime" label="耗时(ms)" width="100" align="center" />
-        <el-table-column prop="createTime" label="操作时间" width="180" />
-        <el-table-column label="操作" width="100" fixed="right">
+        <el-table-column prop="costTime" :label="t('system.log.costTime')" width="100" align="center" />
+        <el-table-column prop="createTime" :label="t('system.log.createTime')" width="180" />
+        <el-table-column :label="t('system.log.actions')" width="100" fixed="right">
           <template #default="{ row }">
             <el-button
               type="primary"
@@ -129,7 +129,7 @@
               :icon="View"
               @click="handleView(row)"
             >
-              详情
+              {{ t('system.log.detail') }}
             </el-button>
           </template>
         </el-table-column>
@@ -241,6 +241,9 @@ import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Download, Delete, View } from '@element-plus/icons-vue'
 import { logApi } from '@/api/system'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 // 响应式数据
 const loading = ref(false)

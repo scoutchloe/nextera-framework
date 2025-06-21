@@ -1,9 +1,10 @@
 import type { MenuItem } from '@/types'
+import i18n from '@/i18n'
 
 // 权限与菜单的映射配置
 interface PermissionMenuConfig {
   permissionCode: string
-  menuItem: MenuItem
+  menuItem: Omit<MenuItem, 'title'> & { titleKey: string }
 }
 
 // 菜单配置映射表
@@ -12,7 +13,7 @@ const MENU_CONFIG_MAP: PermissionMenuConfig[] = [
     permissionCode: 'dashboard:view',
     menuItem: {
       id: 1,
-      title: '仪表盘',
+      titleKey: 'menu.dashboard',
       path: '/dashboard',
       icon: 'DataBoard',
       meta: {
@@ -27,7 +28,7 @@ const MENU_CONFIG_MAP: PermissionMenuConfig[] = [
     permissionCode: 'system:admin:view',
     menuItem: {
       id: 21,
-      title: '管理员管理',
+      titleKey: 'menu.admin',
       path: '/system/admin',
       icon: 'UserFilled',
       meta: {
@@ -42,7 +43,7 @@ const MENU_CONFIG_MAP: PermissionMenuConfig[] = [
     permissionCode: 'system:role:list',
     menuItem: {
       id: 22,
-      title: '角色管理',
+      titleKey: 'menu.role',
       path: '/system/role',
       icon: 'Avatar',
       meta: {
@@ -57,7 +58,7 @@ const MENU_CONFIG_MAP: PermissionMenuConfig[] = [
     permissionCode: 'system:permission:view',
     menuItem: {
       id: 23,
-      title: '权限管理',
+      titleKey: 'menu.permission',
       path: '/system/permission',
       icon: 'Lock',
       meta: {
@@ -72,7 +73,7 @@ const MENU_CONFIG_MAP: PermissionMenuConfig[] = [
     permissionCode: 'system:log:view',
     menuItem: {
       id: 24,
-      title: '系统日志',
+      titleKey: 'menu.log',
       path: '/system/log',
       icon: 'Document',
       meta: {
@@ -87,7 +88,7 @@ const MENU_CONFIG_MAP: PermissionMenuConfig[] = [
     permissionCode: 'article:view',
     menuItem: {
       id: 3,
-      title: '文章管理',
+      titleKey: 'menu.article',
       path: '/article',
       icon: 'Document',
       meta: {
@@ -102,7 +103,7 @@ const MENU_CONFIG_MAP: PermissionMenuConfig[] = [
     permissionCode: 'article:list',
     menuItem: {
       id: 31,
-      title: '文章列表',
+      titleKey: 'menu.articleList',
       path: '/article/list',
       icon: 'List',
       meta: {
@@ -117,7 +118,7 @@ const MENU_CONFIG_MAP: PermissionMenuConfig[] = [
     permissionCode: 'article:category:list',
     menuItem: {
       id: 32,
-      title: '文章分类',
+      titleKey: 'menu.articleCategory',
       path: '/article/category',
       icon: 'Folder',
       meta: {
@@ -132,7 +133,7 @@ const MENU_CONFIG_MAP: PermissionMenuConfig[] = [
     permissionCode: 'article:tag:list',
     menuItem: {
       id: 33,
-      title: '文章标签',
+      titleKey: 'menu.articleTag',
       path: '/article/tag',
       icon: 'PriceTag',
       meta: {
@@ -147,7 +148,7 @@ const MENU_CONFIG_MAP: PermissionMenuConfig[] = [
     permissionCode: 'user:view',
     menuItem: {
       id: 4,
-      title: '用户管理',
+      titleKey: 'menu.user',
       path: '/user',
       icon: 'User',
       meta: {
@@ -162,7 +163,7 @@ const MENU_CONFIG_MAP: PermissionMenuConfig[] = [
     permissionCode: 'user:list:view',
     menuItem: {
       id: 41,
-      title: '用户列表',
+      titleKey: 'menu.userList',
       path: '/user/list',
       icon: 'UserFilled',
       meta: {
@@ -177,7 +178,7 @@ const MENU_CONFIG_MAP: PermissionMenuConfig[] = [
     permissionCode: 'user:analysis:view',
     menuItem: {
       id: 42,
-      title: '用户分析',
+      titleKey: 'menu.analysis',
       path: '/user/analysis',
       icon: 'TrendCharts',
       meta: {
@@ -192,7 +193,7 @@ const MENU_CONFIG_MAP: PermissionMenuConfig[] = [
     permissionCode: 'order:view',
     menuItem: {
       id: 5,
-      title: '订单管理',
+      titleKey: 'menu.order',
       path: '/order',
       icon: 'ShoppingCart',
       meta: {
@@ -207,7 +208,7 @@ const MENU_CONFIG_MAP: PermissionMenuConfig[] = [
     permissionCode: 'order:list:view',
     menuItem: {
       id: 51,
-      title: '订单列表',
+      titleKey: 'menu.orderList',
       path: '/order/list',
       icon: 'List',
       meta: {
@@ -249,6 +250,14 @@ const MENU_HIERARCHY: Record<string, string[]> = {
   'order:list:view': ['order:view', 'order:list:view']
 }
 
+// 转换配置项为菜单项，将titleKey转换为title
+function configToMenuItem(config: PermissionMenuConfig): MenuItem {
+  const item = JSON.parse(JSON.stringify(config.menuItem)) as any
+  item.title = i18n.global.t(config.menuItem.titleKey)
+  delete item.titleKey
+  return item as MenuItem
+}
+
 // 从权限数据生成菜单
 export function generateMenuFromPermissions(permissions: any[]): MenuItem[] {
   console.log('开始生成菜单，权限数据:', permissions)
@@ -265,7 +274,7 @@ export function generateMenuFromPermissions(permissions: any[]): MenuItem[] {
   if (permissionCodes.includes('dashboard:view')) {
     const dashboardConfig = MENU_CONFIG_MAP.find(config => config.permissionCode === 'dashboard:view')
     if (dashboardConfig) {
-      const dashboardMenu = JSON.parse(JSON.stringify(dashboardConfig.menuItem))
+      const dashboardMenu = configToMenuItem(dashboardConfig)
       menuItems.push(dashboardMenu)
       menuMap.set(dashboardMenu.id, dashboardMenu)
     }
@@ -276,7 +285,7 @@ export function generateMenuFromPermissions(permissions: any[]): MenuItem[] {
     if (config.permissionCode === 'dashboard:view') continue // 仪表盘已处理
     
     if (permissionCodes.includes(config.permissionCode)) {
-      const menuItem = JSON.parse(JSON.stringify(config.menuItem))
+      const menuItem = configToMenuItem(config)
       
       // 检查是否需要生成父菜单
       const hierarchy = MENU_HIERARCHY[config.permissionCode]
@@ -288,7 +297,7 @@ export function generateMenuFromPermissions(permissions: any[]): MenuItem[] {
         if (parentConfig) {
           let parentMenu = menuMap.get(parentConfig.menuItem.id)
           if (!parentMenu) {
-            parentMenu = JSON.parse(JSON.stringify(parentConfig.menuItem))
+            parentMenu = configToMenuItem(parentConfig)
             if (parentMenu) {
               parentMenu.children = []
               menuItems.push(parentMenu)
@@ -329,7 +338,7 @@ export function generateMenuFromPermissions(permissions: any[]): MenuItem[] {
     // 创建系统管理父菜单
     const systemParentMenu: MenuItem = {
       id: 2,
-      title: '系统管理',
+      title: i18n.global.t('menu.system'),
       path: '/system',
       icon: 'Setting',
       children: systemMenus,

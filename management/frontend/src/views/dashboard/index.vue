@@ -1,8 +1,8 @@
 <template>
   <div class="dashboard">
     <div class="dashboard-header">
-      <h2>仪表盘</h2>
-      <p>欢迎回来，{{ (userStore.userInfo as any)?.realName || userStore.userInfo?.username || '管理员' }}！</p>
+      <h2>{{ $t('dashboard.title') }}</h2>
+      <p>{{ $t('dashboard.welcome') }}，{{ userDisplayName }}！</p>
     </div>
 
     <!-- 统计卡片 -->
@@ -10,7 +10,7 @@
       <div class="stat-card">
         <div class="stat-content">
           <div class="stat-number">{{ stats.totalUsers }}</div>
-          <div class="stat-label">总用户数</div>
+          <div class="stat-label">{{ $t('dashboard.totalUsers') }}</div>
         </div>
         <div class="stat-icon">
           <el-icon :size="32" color="#409eff">
@@ -22,7 +22,7 @@
       <div class="stat-card">
         <div class="stat-content">
           <div class="stat-number">{{ stats.totalArticles }}</div>
-          <div class="stat-label">文章总数</div>
+          <div class="stat-label">{{ $t('dashboard.totalArticles') }}</div>
         </div>
         <div class="stat-icon">
           <el-icon :size="32" color="#67c23a">
@@ -34,7 +34,7 @@
       <div class="stat-card">
         <div class="stat-content">
           <div class="stat-number">{{ stats.todayVisits }}</div>
-          <div class="stat-label">今日访问</div>
+          <div class="stat-label">{{ $t('dashboard.todayVisits') }}</div>
         </div>
         <div class="stat-icon">
           <el-icon :size="32" color="#e6a23c">
@@ -46,7 +46,7 @@
       <div class="stat-card">
         <div class="stat-content">
           <div class="stat-number">{{ stats.onlineUsers }}</div>
-          <div class="stat-label">在线用户</div>
+          <div class="stat-label">{{ $t('dashboard.onlineUsers') }}</div>
         </div>
         <div class="stat-icon">
           <el-icon :size="32" color="#f56c6c">
@@ -60,11 +60,11 @@
     <div class="charts-grid">
       <div class="chart-card">
         <div class="card-header">
-          <h3>访问趋势</h3>
+          <h3>{{ $t('dashboard.visitTrend') }}</h3>
           <el-select v-model="timeRange" size="small">
-            <el-option label="最近7天" value="7d" />
-            <el-option label="最近30天" value="30d" />
-            <el-option label="最近90天" value="90d" />
+            <el-option :label="$t('dashboard.timeRange.7d')" value="7d" />
+            <el-option :label="$t('dashboard.timeRange.30d')" value="30d" />
+            <el-option :label="$t('dashboard.timeRange.90d')" value="90d" />
           </el-select>
         </div>
         <div class="chart-content">
@@ -74,7 +74,7 @@
               <el-icon :size="48" color="#ddd">
                 <TrendCharts />
               </el-icon>
-              <p>访问趋势图表</p>
+              <p>{{ $t('dashboard.visitTrend') }}</p>
             </div>
           </div>
         </div>
@@ -82,7 +82,7 @@
 
       <div class="chart-card">
         <div class="card-header">
-          <h3>用户分布</h3>
+          <h3>{{ $t('dashboard.userDistribution') }}</h3>
         </div>
         <div class="chart-content">
           <div id="userChart" style="height: 300px;">
@@ -90,7 +90,7 @@
               <el-icon :size="48" color="#ddd">
                 <PieChart />
               </el-icon>
-              <p>用户分布图表</p>
+              <p>{{ $t('dashboard.userDistribution') }}</p>
             </div>
           </div>
         </div>
@@ -101,31 +101,31 @@
     <div class="quick-actions">
       <div class="action-card">
         <div class="action-header">
-          <h3>快捷操作</h3>
+          <h3>{{ $t('dashboard.quickActions') }}</h3>
         </div>
         <div class="action-buttons">
           <el-button type="primary" :icon="Plus" @click="$router.push('/system/admin')">
-            新增管理员
+            {{ $t('dashboard.actions.addAdmin') }}
           </el-button>
           <el-button type="success" :icon="EditPen" @click="$router.push('/article/list')">
-            发布文章
+            {{ $t('dashboard.actions.publishArticle') }}
           </el-button>
           <el-button type="warning" :icon="Setting" @click="$router.push('/system/role')">
-            角色管理
+            {{ $t('dashboard.actions.roleManagement') }}
           </el-button>
           <el-button type="info" :icon="Document" @click="$router.push('/system/log')">
-            系统日志
+            {{ $t('dashboard.actions.systemLog') }}
           </el-button>
         </div>
       </div>
 
       <div class="action-card">
         <div class="action-header">
-          <h3>最近活动</h3>
+          <h3>{{ $t('dashboard.recentActivity') }}</h3>
         </div>
         <div class="activity-list">
           <div 
-            v-for="activity in recentActivities" 
+            v-for="activity in localizedActivities" 
             :key="activity.id" 
             class="activity-item"
           >
@@ -146,8 +146,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { useI18n } from '@/composables/useI18n'
 import { 
   User, 
   Document, 
@@ -161,6 +162,13 @@ import {
 } from '@element-plus/icons-vue'
 
 const userStore = useUserStore()
+const { t } = useI18n()
+
+// 计算用户显示名称
+const userDisplayName = computed(() => {
+  const userInfo = userStore.userInfo as any
+  return userInfo?.realName || userInfo?.username || t('dashboard.admin')
+})
 
 // 统计数据
 const stats = reactive({
@@ -178,34 +186,43 @@ const recentActivities = ref([
   {
     id: 1,
     user: '张三',
-    action: '登录了系统',
-    time: '2分钟前'
+    actionKey: 'login',
+    timeKey: '2'
   },
   {
     id: 2,
     user: '李四',
-    action: '发布了新文章',
-    time: '5分钟前'
+    actionKey: 'publishedArticle',
+    timeKey: '5'
   },
   {
     id: 3,
     user: '王五',
-    action: '修改了用户权限',
-    time: '10分钟前'
+    actionKey: 'modifiedPermission',
+    timeKey: '10'
   },
   {
     id: 4,
     user: '赵六',
-    action: '删除了一篇文章',
-    time: '15分钟前'
+    actionKey: 'deletedArticle',
+    timeKey: '15'
   },
   {
     id: 5,
     user: '管理员',
-    action: '更新了系统配置',
-    time: '30分钟前'
+    actionKey: 'login',
+    timeKey: '30'
   }
 ])
+
+// 本地化的活动数据
+const localizedActivities = computed(() => {
+  return recentActivities.value.map(activity => ({
+    ...activity,
+    action: t(`dashboard.activities.${activity.actionKey}`),
+    time: `${activity.timeKey}${t('dashboard.time.minutesAgo')}`
+  }))
+})
 
 // 加载仪表盘数据
 const loadDashboardData = () => {

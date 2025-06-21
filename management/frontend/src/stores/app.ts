@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { ThemeMode, SidebarStatus, DeviceType } from '@/types'
+import type { ThemeMode, SidebarStatus, DeviceType, SupportedLocale } from '@/types'
 
 export const useAppStore = defineStore('app', () => {
   // 状态
@@ -9,6 +9,7 @@ export const useAppStore = defineStore('app', () => {
   const device = ref<DeviceType>('desktop')
   const loading = ref(false)
   const breadcrumbs = ref<Array<{ title: string; path?: string }>>([])
+  const locale = ref<SupportedLocale>('zh-CN')
 
   // 屏幕尺寸状态
   const screenWidth = ref(window.innerWidth)
@@ -38,6 +39,7 @@ export const useAppStore = defineStore('app', () => {
   const initApp = () => {
     const storedTheme = localStorage.getItem('theme') as ThemeMode
     const storedSidebarStatus = localStorage.getItem('sidebarStatus') as SidebarStatus
+    const storedLocale = localStorage.getItem('locale') as SupportedLocale
     
     if (storedTheme) {
       theme.value = storedTheme
@@ -51,6 +53,16 @@ export const useAppStore = defineStore('app', () => {
     
     if (storedSidebarStatus) {
       sidebarStatus.value = storedSidebarStatus
+    }
+
+    // 初始化语言设置
+    if (storedLocale && ['zh-CN', 'en-US'].includes(storedLocale)) {
+      locale.value = storedLocale
+    } else {
+      // 检测浏览器语言
+      const browserLang = navigator.language.toLowerCase()
+      const defaultLocale = browserLang.includes('zh') ? 'zh-CN' : 'en-US'
+      setLocale(defaultLocale)
     }
 
     // 检测设备类型
@@ -196,6 +208,25 @@ export const useAppStore = defineStore('app', () => {
     breadcrumbs.value = []
   }
 
+  // 设置语言
+  const setLocale = (newLocale: SupportedLocale) => {
+    locale.value = newLocale
+    localStorage.setItem('locale', newLocale)
+  }
+
+  // 切换语言
+  const toggleLocale = async () => {
+    const newLocale = locale.value === 'zh-CN' ? 'en-US' : 'zh-CN'
+    setLocale(newLocale)
+    
+    // 语言切换后重新生成菜单
+    const { useUserStore } = await import('./user')
+    const userStore = useUserStore()
+    if (userStore.isLoggedIn) {
+      await userStore.reloadPermissionsAndMenu()
+    }
+  }
+
   // 获取当前断点信息
   const getBreakpointInfo = () => {
     return {
@@ -221,6 +252,7 @@ export const useAppStore = defineStore('app', () => {
     device,
     loading,
     breadcrumbs,
+    locale,
     screenWidth,
     screenHeight,
     
@@ -251,6 +283,8 @@ export const useAppStore = defineStore('app', () => {
     setBreadcrumbs,
     addBreadcrumb,
     clearBreadcrumbs,
+    setLocale,
+    toggleLocale,
     getBreakpointInfo
   }
 }) 

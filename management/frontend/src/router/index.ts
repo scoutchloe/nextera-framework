@@ -222,16 +222,26 @@ const routes: RouteRecordRaw[] = [
       }
     ]
   },
-  {
-    path: '/profile',
-    name: 'Profile',
-    component: () => import('@/views/profile/index.vue'),
-    meta: {
-      title: '个人中心',
-      requireAuth: true,
-      hideInMenu: true
-    }
-  },
+        {
+        path: '/profile',
+        name: 'Profile',
+        component: () => import('@/views/profile/index.vue'),
+        meta: {
+          title: '个人中心',
+          requireAuth: true,
+          hideInMenu: true
+        }
+      },
+      {
+        path: '/test/i18n',
+        name: 'I18nTest',
+        component: () => import('@/views/test/I18nTest.vue'),
+        meta: {
+          title: 'i18n测试',
+          requireAuth: true,
+          hideInMenu: true
+        }
+      },
   {
     path: '/permission-debug',
     name: 'PermissionDebug',

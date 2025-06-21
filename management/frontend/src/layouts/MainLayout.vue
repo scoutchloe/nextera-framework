@@ -74,7 +74,7 @@
       <!-- 底部 -->
       <footer class="footer">
         <div class="footer-content">
-          <p>&copy; 2025 Nextera Management System. All rights reserved. Version 1.0.0</p>
+          <p>{{ $t('footer.copyright') }}</p>
         </div>
       </footer>
     </div>

@@ -2,12 +2,12 @@
   <div class="admin-management" style="width: 100%; height: 100%; min-height: 500px; background: white; padding: 20px;">
     <div class="page-header">
       <div class="header-title">
-        <h2>系统账户管理</h2>
-        <p>管理系统管理员账户，控制系统访问权限</p>
+        <h2>{{ t('system.admin.systemAccountTitle') }}</h2>
+        <p>{{ t('system.admin.systemAccountSubtitle') }}</p>
       </div>
       <div class="header-actions">
         <el-button type="primary" :icon="Plus" @click="handleAdd">
-          新增管理员
+          {{ t('system.admin.createAdmin') }}
         </el-button>
       </div>
     </div>
@@ -15,24 +15,24 @@
     <!-- 搜索栏 -->
     <div class="search-bar">
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="用户名">
+        <el-form-item :label="t('system.admin.usernameLabel')">
           <el-input
             v-model="searchForm.username"
-            placeholder="请输入用户名"
+            :placeholder="t('system.admin.usernamePlaceholder')"
             clearable
             @keyup.enter="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="姓名">
+        <el-form-item :label="t('system.admin.realNameLabel')">
           <el-input
             v-model="searchForm.realName"
-            placeholder="请输入姓名"
+            :placeholder="t('system.admin.realNamePlaceholder')"
             clearable
             @keyup.enter="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="角色">
-          <el-select v-model="searchForm.roleId" placeholder="请选择角色" clearable>
+        <el-form-item :label="t('system.admin.roleLabel')">
+          <el-select v-model="searchForm.roleId" :placeholder="t('system.admin.rolePlaceholder')" clearable>
             <el-option 
               v-for="role in roleOptions" 
               :key="role.id" 
@@ -41,18 +41,18 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
-            <el-option label="正常" value="1" />
-            <el-option label="禁用" value="0" />
+        <el-form-item :label="t('system.admin.statusLabel')">
+          <el-select v-model="searchForm.status" :placeholder="t('system.admin.statusPlaceholder')" clearable>
+            <el-option :label="t('common.enable')" value="1" />
+            <el-option :label="t('common.disable')" value="0" />
           </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="handleSearch">
-            搜索
+            {{ t('common.search') }}
           </el-button>
           <el-button :icon="Refresh" @click="handleReset">
-            重置
+            {{ t('common.reset') }}
           </el-button>
         </el-form-item>
       </el-form>
@@ -69,7 +69,7 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="avatar" label="头像" width="120">
+        <el-table-column prop="avatar" :label="t('system.admin.avatar')" width="120">
           <template #default="{ row }">
             <div class="avatar-cell">
               <el-avatar :src="getAvatarDisplayUrl(row.avatar)" :size="40">
@@ -82,21 +82,21 @@
                 @click="downloadAvatar(row.avatar)"
                 class="download-btn"
               >
-                下载
+                {{ t('system.admin.download') }}
               </el-button>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="username" label="用户名" width="120" />
-        <el-table-column prop="realName" label="姓名" width="100" />
-        <el-table-column prop="email" label="邮箱" min-width="180" />
-        <el-table-column prop="phone" label="手机号" width="120" />
-        <el-table-column prop="roleName" label="角色" width="120">
+        <el-table-column prop="username" :label="t('system.admin.username')" width="120" />
+        <el-table-column prop="realName" :label="t('system.admin.realName')" width="100" />
+        <el-table-column prop="email" :label="t('system.admin.email')" min-width="180" />
+        <el-table-column prop="phone" :label="t('system.admin.phone')" width="120" />
+        <el-table-column prop="roleName" :label="t('system.admin.role')" width="120">
           <template #default="{ row }">
             <el-tag type="primary">{{ row.roleName }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="100" align="center">
+        <el-table-column prop="status" :label="t('common.status')" width="100" align="center">
           <template #default="{ row }">
             <el-switch
               v-model="row.status"
@@ -106,9 +106,9 @@
             />
           </template>
         </el-table-column>
-        <el-table-column prop="lastLoginTime" label="最后登录" width="180" />
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column prop="lastLoginTime" :label="t('system.admin.lastLoginTime')" width="180" />
+        <el-table-column prop="createTime" :label="t('system.admin.createTime')" width="180" />
+        <el-table-column :label="t('system.admin.operation')" width="220" fixed="right">
           <template #default="{ row }">
             <el-button
               type="primary"
@@ -116,7 +116,7 @@
               :icon="Edit"
               @click="handleEdit(row)"
             >
-              编辑
+              {{ t('system.admin.edit') }}
             </el-button>
             <el-button
               type="warning"
@@ -124,7 +124,7 @@
               :icon="Key"
               @click="handleResetPassword(row)"
             >
-              重置密码
+              {{ t('system.admin.resetPassword') }}
             </el-button>
             <el-button
               type="danger"
@@ -133,7 +133,7 @@
               @click="handleDelete(row)"
               :disabled="row.id === 1"
             >
-              删除
+              {{ t('system.admin.delete') }}
             </el-button>
           </template>
         </el-table-column>
@@ -330,7 +330,10 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Refresh, Edit, Delete, Key } from '@element-plus/icons-vue'
 import type { FormInstance, UploadProps, UploadRequestOptions } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { adminApi, roleApi, fileApi } from '@/api/system'
+
+const { t } = useI18n()
 
 // 响应式数据
 const loading = ref(false)

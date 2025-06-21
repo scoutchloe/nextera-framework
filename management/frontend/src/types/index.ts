@@ -164,6 +164,9 @@ export interface LoginRequest {
   rememberMe?: boolean
 }
 
+// 支持的语言类型
+export type SupportedLocale = 'zh-CN' | 'en-US'
+
 // 登录响应类型
 export interface LoginResponse {
   token: string

@@ -2,19 +2,19 @@
   <div class="header-actions">
     <!-- 搜索 -->
     <div class="action-item search">
-      <el-input
-        v-model="searchText"
-        placeholder="搜索菜单..."
-        prefix-icon="Search"
-        clearable
-        style="width: 200px"
-        @input="handleSearch"
-      />
+                <el-input
+            v-model="searchText"
+            :placeholder="t('header.search')"
+            prefix-icon="Search"
+            clearable
+            style="width: 200px"
+            @input="handleSearch"
+          />
     </div>
     
     <!-- 全屏切换 -->
     <div class="action-item">
-      <el-tooltip :content="isFullscreen ? '退出全屏' : '全屏'" placement="bottom">
+      <el-tooltip :content="isFullscreen ? t('header.exitFullscreen') : t('header.fullscreen')" placement="bottom">
         <el-button
           circle
           :icon="isFullscreen ? 'Aim' : 'FullScreen'"
@@ -25,11 +25,22 @@
     
     <!-- 主题切换 -->
     <div class="action-item">
-      <el-tooltip content="切换主题" placement="bottom">
+      <el-tooltip :content="t('header.toggleTheme')" placement="bottom">
         <el-button
           circle
           :icon="appStore.isDark ? 'Sunny' : 'Moon'"
           @click="appStore.toggleTheme"
+        />
+      </el-tooltip>
+    </div>
+    
+    <!-- 语言切换 -->
+    <div class="action-item">
+      <el-tooltip :content="`${t('header.language')}: ${getCurrentLanguageName()} → ${getNextLanguageName()}`" placement="bottom">
+        <el-button
+          circle
+          icon="Promotion"
+          @click="toggleLanguage"
         />
       </el-tooltip>
     </div>
@@ -60,15 +71,15 @@
           <el-dropdown-menu>
             <el-dropdown-item command="profile">
               <el-icon><User /></el-icon>
-              个人中心
+              {{ t('header.profile') }}
             </el-dropdown-item>
             <el-dropdown-item command="settings">
               <el-icon><Setting /></el-icon>
-              系统设置
+              {{ t('header.settings') }}
             </el-dropdown-item>
             <el-dropdown-item divided command="logout">
               <el-icon><SwitchButton /></el-icon>
-              退出登录
+              {{ t('header.logout') }}
             </el-dropdown-item>
           </el-dropdown-menu>
         </template>
@@ -78,13 +89,13 @@
     <!-- 消息抽屉 -->
     <el-drawer
       v-model="showMessageDrawer"
-      title="消息通知"
+      :title="t('header.messageNotification')"
       direction="rtl"
       size="400px"
     >
       <div class="message-list">
         <div v-if="messageList.length === 0" class="empty-message">
-          <el-empty description="暂无消息" />
+          <el-empty :description="t('header.noMessages')" />
         </div>
         <div v-else>
           <div
@@ -116,6 +127,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { useAppStore } from '@/stores/app'
+import { useI18n } from '@/composables/useI18n'
 
 interface Message {
   id: number
@@ -128,6 +140,7 @@ interface Message {
 const router = useRouter()
 const userStore = useUserStore()
 const appStore = useAppStore()
+const { t, toggleLanguage, getCurrentLanguageName, getNextLanguageName } = useI18n()
 
 // 响应式数据
 const searchText = ref('')
@@ -138,15 +151,15 @@ const showMessageDrawer = ref(false)
 const messageList = ref<Message[]>([
   {
     id: 1,
-    title: '系统通知',
-    content: '您有新的权限配置需要审核',
+    title: t('system.notification'),
+    content: t('system.permissionReview'),
     time: '2024-06-18 10:30',
     isRead: false
   },
   {
     id: 2,
-    title: '用户反馈',
-    content: '用户张三提交了新的反馈意见',
+    title: t('system.userFeedback'),
+    content: t('system.feedbackSubmitted'),
     time: '2024-06-18 09:15',
     isRead: true
   }
@@ -198,17 +211,17 @@ const handleUserCommand = (command: string) => {
 const handleLogout = async () => {
   try {
     await ElMessageBox.confirm(
-      '确定要退出登录吗？',
-      '提示',
+      t('header.logoutConfirm'),
+      t('common.tip'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
       }
     )
     
     userStore.logout()
-    ElMessage.success('退出登录成功')
+    ElMessage.success(t('header.logoutSuccess'))
     router.push('/login')
   } catch (error) {
     // 用户取消
