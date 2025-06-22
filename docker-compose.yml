@@ -83,7 +83,8 @@ services:
       - rocketmq_nameserver_logs:/home/rocketmq/logs
       - rocketmq_nameserver_store:/home/rocketmq/store
     environment:
-      JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512m -Xmx512m -Xmn256m"
+      TZ: Asia/Shanghai
+      JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512m -Xmx512m -Xmn256m -Duser.timezone=Asia/Shanghai"
     command: ["sh", "mqnamesrv"]
     networks:
       - nextera-network
@@ -102,8 +103,9 @@ services:
       - rocketmq_broker_store:/home/rocketmq/store
       - ./docker/rocketmq/broker.conf:/opt/rocketmq/conf/broker.conf:ro
     environment:
+      TZ: Asia/Shanghai
       NAMESRV_ADDR: "rocketmq-nameserver:9876"
-      JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms1024m -Xmx1024m -Xmn512m"
+      JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms1024m -Xmx1024m -Xmn512m -Duser.timezone=Asia/Shanghai"
       MAX_POSSIBLE_HEAP: "1024m"
     command: ["sh", "mqbroker", "-c", "/opt/rocketmq/conf/broker.conf"]
     depends_on:
@@ -119,7 +121,8 @@ services:
     ports:
       - "8180:8080"
     environment:
-      JAVA_OPTS: "-Drocketmq.namesrv.addr=rocketmq-nameserver:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false -Xms256m -Xmx256m"
+      TZ: Asia/Shanghai
+      JAVA_OPTS: "-Drocketmq.namesrv.addr=rocketmq-nameserver:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false -Xms256m -Xmx256m -Duser.timezone=Asia/Shanghai"
       ROCKETMQ_CONFIG_NAMESRVADDR: "rocketmq-nameserver:9876"
       ROCKETMQ_CONFIG_LOGINREQUIRED: "false"
     depends_on:
