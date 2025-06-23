@@ -48,6 +48,9 @@ public class ArticleUpdateMessageConsumer implements RocketMQListener<ArticleUpd
                 transactionId, articleId, userId);
         
         try {
+            // TODO: 如果消息状态为已回滚，则不处理, (MQ 消费的消息没有消费掉,所有有可能重新来一次消费, 这个时候如果消息已经回滚了，那么再更新文章旧没有意义了, 已经在: 分支rocketmq-local-message-table-forTX 修复了.)
+
+
             // 1. 更新消息状态为已提交
             updateMessageStatus(transactionId, RocketmqTransactionLog.MessageStatus.COMMITTED.getCode());
             
