@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.nextera.user.entity.RocketmqTransactionLog;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 /**
@@ -53,4 +54,13 @@ public interface RocketmqTransactionLogMapper extends BaseMapper<RocketmqTransac
      */
     @Update("UPDATE rocketmq_transaction_log SET error_message = #{errorMessage}, updated_time = NOW() WHERE transaction_id = #{transactionId}")
     int updateErrorMessage(@Param("transactionId") String transactionId, @Param("errorMessage") String errorMessage);
+
+    /**
+     * 根据transactionId 查询事务消息.
+     *
+     * @param transactionId
+     * @return RocketmqTransactionLog
+     */
+    @Select("SELECT * from rocketmq_transaction_log where transaction_id = #{transactionId} ")
+    RocketmqTransactionLog selectByTransactionId(@Param("transactionId") String transactionId);
 } 

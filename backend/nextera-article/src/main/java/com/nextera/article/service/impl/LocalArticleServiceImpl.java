@@ -72,6 +72,7 @@ public class LocalArticleServiceImpl implements LocalArticleService {
         updateWrapper.set(Article::getContent, request.getContent());
         updateWrapper.set(Article::getCategoryId, request.getCategoryId());
         updateWrapper.set(Article::getUpdateTime, LocalDateTime.now());
+//        updateWrapper.set(Article::getIsTop, -1);
         LambdaUpdateChainWrapper<Article> updateChainWrapper = new LambdaUpdateChainWrapper<>(articleMapper, updateWrapper);
         return updateChainWrapper.update();
     }

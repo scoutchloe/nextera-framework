@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * 文章更新消息DTO
@@ -27,6 +28,9 @@ public class ArticleUpdateMessageDTO implements Serializable {
      * 用户ID
      */
     private Long userId;
+
+    // 用户最后登录时间
+    private LocalDateTime lastLoginTime;
 
     /**
      * 文章ID

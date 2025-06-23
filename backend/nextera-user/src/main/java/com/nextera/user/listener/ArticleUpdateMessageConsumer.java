@@ -16,6 +16,8 @@ import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 /**
  * 文章更新消息消费者
  * 消费RocketMQ事务消息，调用文章服务更新文章
@@ -43,7 +45,15 @@ public class ArticleUpdateMessageConsumer implements RocketMQListener<ArticleUpd
         String transactionId = messageDTO.getTransactionId();
         Long articleId = messageDTO.getArticleId();
         Long userId = messageDTO.getUserId();
-        
+
+        // 如果消息状态为已回滚，则不处理
+        RocketmqTransactionLog txLog = getMessageStatus(transactionId);
+        if (txLog !=null && Objects.equals(RocketmqTransactionLog.MessageStatus.ROLLBACK.getCode(), txLog.getMessageStatus())) {
+            log.info("消息状态为已回滚，不处理: transactionId={}, articleId={}, userId={}", 
+                    transactionId, articleId, userId);
+            return;
+        }
+
         log.info("接收到文章更新消息: transactionId={}, articleId={}, userId={}", 
                 transactionId, articleId, userId);
         
@@ -100,8 +110,9 @@ public class ArticleUpdateMessageConsumer implements RocketMQListener<ArticleUpd
             ArticleCreateRequest updateRequest = buildArticleUpdateRequest(messageDTO);
             
             // 使用编程式配置的Dubbo调用器，完全绕过Seata避免branchType为null错误
-            Result<Boolean> result = articleServiceClient.updateArticleForRocketMQProgrammatic(
-                    messageDTO.getArticleId(), 
+//            Result<Boolean> result = articleServiceClient.updateArticleForRocketMQProgrammatic(
+            Result<Boolean> result = articleServiceClient.updateArticle(
+                    messageDTO.getArticleId(),
                     updateRequest,
                     messageDTO.getUserId(), 
                     "rocketmq", // 标识来源
@@ -135,6 +146,10 @@ public class ArticleUpdateMessageConsumer implements RocketMQListener<ArticleUpd
         } catch (Exception e) {
             log.error("更新消息状态失败: transactionId={}, status={}", transactionId, messageStatus, e);
         }
+    }
+
+    private RocketmqTransactionLog  getMessageStatus(String transactionId) {
+        return transactionLogMapper.selectByTransactionId(transactionId);
     }
 
     /**

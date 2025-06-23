@@ -1,5 +1,6 @@
 package com.nextera.user.service;
 
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.nextera.user.dto.ArticleUpdateMessageDTO;
@@ -121,6 +122,9 @@ public class UserArticleRocketMQCompensationService {
                             originalLastLoginTime = LocalDateTime.parse((String) lastLoginTimeObj);
                         } else if (lastLoginTimeObj instanceof LocalDateTime) {
                             originalLastLoginTime = (LocalDateTime) lastLoginTimeObj;
+                            // LocalDateTime 类型会被转型为Long 类型的时间戳 (13位)
+                        } else if (lastLoginTimeObj instanceof Long) {
+                            originalLastLoginTime = LocalDateTimeUtil.of((Long)lastLoginTimeObj);
                         } else {
                             // 如果格式不匹配，使用默认策略
                             log.warn("无法解析lastLoginTime格式: {}", lastLoginTimeObj);

@@ -5,7 +5,7 @@ import com.nextera.api.article.dto.ArticleDTO;
 import com.nextera.common.core.Result;
 import com.nextera.user.client.ArticleServiceClient;
 import com.nextera.user.dto.UserInfoDTO;
-import io.seata.spring.annotation.GlobalTransactional;
+//import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,12 +37,11 @@ public class UserArticleBizService {
 
     private final ArticleServiceClient articleServiceClient;
     private final LocalUserService localUserService;
-    private final UserArticleBizTCCService userArticleBizTCCService;
     /**
      * 用户创建文章业务逻辑
      * 使用Seata分布式事务确保强一致性：要么都成功，要么都失败
      */
-    @GlobalTransactional(rollbackFor = Exception.class, timeoutMills = 30000)
+    //@GlobalTransactional(rollbackFor = Exception.class, timeoutMills = 30000)
     public Result<Integer> createArticle(ArticleCreateRequest request, Long userId, HttpServletRequest httpRequest) {
         log.info("用户创建文章业务处理，用户ID: {}, 文章标题: {}", userId, request.getTitle());
         
@@ -84,21 +83,11 @@ public class UserArticleBizService {
         }
     }
 
-
-    /**
-     * 用户更新文章业务逻辑 - TCC模式实现
-     * 直接委托给TCC服务处理
-     */
-    public Result<Boolean> updateArticle(Long articleId, ArticleCreateRequest request, Long userId, HttpServletRequest httpRequest) {
-        log.info("用户更新文章业务处理（TCC模式），用户ID: {}, 文章标题: {}", userId, request.getTitle());
-        return userArticleBizTCCService.updateArticleTCC(articleId, request, userId, httpRequest);
-    }
-
     /**
      * 用户更新文章业务逻辑 - 原有AT模式实现（保留）
      * 使用Seata分布式事务确保强一致性：要么都成功，要么都失败
      */
-    @GlobalTransactional(rollbackFor = Exception.class, timeoutMills = 30000)
+    //@GlobalTransactional(rollbackFor = Exception.class, timeoutMills = 30000)
     public Result<Boolean> updateArticleAT(Long articleId, ArticleCreateRequest request, Long userId, HttpServletRequest httpRequest) {
         log.info("用户更新文章业务处理（AT模式），用户ID: {}, 文章标题: {}", userId, request.getTitle());
 

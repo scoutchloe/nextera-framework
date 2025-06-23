@@ -142,7 +142,12 @@ public class UserArticleRocketMQService {
             // 1. 记录事务日志
             log.info("步骤1: 保存事务日志");
             saveTransactionLog(messageDTO);
-            
+
+            // 获得用户的登录时间.
+            LocalDateTime userOldLastLoginTime = getUserOldLastLoginTime(messageDTO.getUserId());
+            if (userOldLastLoginTime != null) {
+                messageDTO.setLastLoginTime(userOldLastLoginTime);
+            }
             // 2. 记录操作日志
             log.info("步骤2: 保存操作日志");
             saveOperationLog(messageDTO);
@@ -271,6 +276,13 @@ public class UserArticleRocketMQService {
                 .setUserAgent(messageDTO.getUserAgent())
                 .setCreatedTime(LocalDateTime.now())
                 .setUpdatedTime(LocalDateTime.now());
+
+        // 设置用户旧的更新时间值
+        if (messageDTO.getLastLoginTime() != null) {
+            Map<String, Object> oldDataMap = new HashMap<>();
+            oldDataMap.put("lastLoginTime", messageDTO.getLastLoginTime());
+            operationLog.setOldData(JSONUtil.toJsonStr(oldDataMap));
+        }
         
         int result = operationLogMapper.insert(operationLog);
         if (result <= 0) {
@@ -279,6 +291,15 @@ public class UserArticleRocketMQService {
         
         log.info("保存操作日志成功: transactionId={}, id={}", 
                 messageDTO.getTransactionId(), operationLog.getId());
+    }
+
+
+    private LocalDateTime getUserOldLastLoginTime(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            return null;
+        }
+        return user.getLastLoginTime();
     }
 
     /**
