@@ -6,6 +6,7 @@ import com.nextera.api.article.service.ArticleService;
 import com.nextera.common.core.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,6 +19,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class ArticleServiceClient {
+
+    private final ArticleService rocketmqArticleServiceProgrammatic;
+
+    public ArticleServiceClient(@Qualifier("rocketmqArticleService") ArticleService rocketmqArticleServiceProgrammatic) {
+        this.rocketmqArticleServiceProgrammatic = rocketmqArticleServiceProgrammatic;
+    }
 
     @DubboReference(version = "1.0.0", check = false, timeout = 5000)
     private ArticleService articleService;
@@ -127,6 +134,37 @@ public class ArticleServiceClient {
         } catch (Exception e) {
             log.error("TCC专用方法：调用文章服务获取文章详情失败，articleId={}", id, e);
             return Result.error("获取文章详情失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 更新文章（RocketMQ专用 - 编程式配置版本）
+     * 使用完全绕过Seata的编程式Dubbo Reference，这是最终解决方案
+     * 如果注解方式仍然有branchType问题，使用这个方法
+     *
+     * @param articleId 文章ID
+     * @param request 文章更新请求
+     * @param userId 用户ID
+     * @param username 用户名
+     * @param ipAddress IP地址
+     * @param userAgent 用户代理
+     * @return 更新结果
+     */
+    public Result<Boolean> updateArticleForRocketMQProgrammatic(Long articleId, ArticleCreateRequest request, Long userId, String username, String ipAddress, String userAgent) {
+        try {
+            log.info("RocketMQ专用方法（编程式配置）：调用文章服务更新文章（完全绕过Seata），articleId={}", articleId);
+            Result<Boolean> result = rocketmqArticleServiceProgrammatic.updateArticle(articleId, request, userId, username, ipAddress, userAgent);
+            log.info("RocketMQ专用方法（编程式配置）：文章服务调用结果（完全绕过Seata），articleId={}, success={}",
+                    articleId, result.isSuccess());
+            return result;
+        } catch (Exception e) {
+            log.error("RocketMQ专用方法（编程式配置）：调用文章服务更新文章失败（完全绕过Seata），articleId={}", articleId, e);
+            // 如果仍然出现branchType相关错误，记录详细信息
+            if (e.getMessage() != null && e.getMessage().contains("branchType")) {
+                log.error("❌ 编程式配置仍然出现branchType错误，这表明问题可能更深层: {}", e.getMessage());
+                log.error("完整错误堆栈:", e);
+            }
+            return Result.error("更新文章失败：" + e.getMessage());
         }
     }
 } 

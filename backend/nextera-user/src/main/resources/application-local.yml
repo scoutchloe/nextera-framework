@@ -40,6 +40,8 @@ dubbo:
   consumer:
     timeout: 5000
     retries: 0
+    # 在全局消费者级别排除Seata相关过滤器
+    filter: "-seataTransactionPropagation,-seata"
 
 # MyBatis Plus配置
 mybatis-plus:
@@ -142,3 +144,18 @@ tcc:
     enabled: true           # 启用重试控制
     max-retry-count: 3      # 最大重试3次
     retry-interval: 1000    # 重试间隔1秒
+
+
+# RocketMQ配置
+rocketmq:
+  name-server: localhost:9876
+  producer:
+    group: ${spring.application.name}_PRODUCER_GROUP
+    send-message-timeout: 30000
+    retry-times-when-send-failed: 3
+    retry-times-when-send-async-failed: 3
+    max-message-size: 4194304
+    compress-message-body-threshold: 4096
+    retry-another-broker-when-not-store-ok: true
+  consumer:
+    pull-batch-size: 32

@@ -19,6 +19,18 @@ public class IpUtil {
         if (request == null) {
             return "127.0.0.1";
         }
+        return getClientIpAddress(request);
+    }
+
+    /**
+     * 获取客户端IP地址
+     * @param request HTTP请求对象
+     * @return IP地址
+     */
+    public static String getClientIpAddress(HttpServletRequest request) {
+        if (request == null) {
+            return "127.0.0.1";
+        }
 
         String ip = request.getHeader("X-Forwarded-For");
         if (StrUtil.isBlank(ip) || "unknown".equalsIgnoreCase(ip)) {

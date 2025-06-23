@@ -6,6 +6,8 @@ import com.nextera.user.service.TccDataConsistencyMonitor;
 import com.nextera.user.service.TccStateConsistencyChecker;
 import com.nextera.user.service.UserArticleBizService;
 import com.nextera.user.service.UserArticleBizTCCService;
+import com.nextera.user.service.UserArticleRocketMQService;
+import com.nextera.user.service.DubboSeataFilterVerifier;
 import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -42,6 +44,8 @@ public class UserArticleController {
     private final UserArticleBizTCCService userArticleBizTCCService;
     private final TccDataConsistencyMonitor tccDataConsistencyMonitor;
     private final TccStateConsistencyChecker tccStateConsistencyChecker;
+    private final UserArticleRocketMQService userArticleRocketMQService;
+    private final DubboSeataFilterVerifier dubboSeataFilterVerifier;
 
     /**
      * 用户创建文章
@@ -135,6 +139,30 @@ public class UserArticleController {
             return userArticleBizTCCService.updateArticleTCC(articleId, request, userId, httpRequest);
         } catch (Exception e) {
             log.error("用户更新文章失败（TCC模式），用户ID: {}, 标题: {}", userId, request.getTitle(), e);
+            return Result.error("更新文章失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 用户更新文章 - RocketMQ事务消息模式
+     * 使用RocketMQ事务消息实现分布式事务，确保数据最终一致性
+     */
+    @PostMapping("/update-rocketmq")
+    @Operation(summary = "用户更新文章（RocketMQ事务消息）", description = "用户通过RocketMQ事务消息实现分布式事务更新文章，保证最终一致性")
+    public Result<Boolean> updateArticleWithRocketMQ(
+            @Valid @RequestBody ArticleCreateRequest request,
+            @Parameter(description = "用户ID")
+            @RequestParam(name="userId")  Long userId,
+            @Parameter(description = "文章ID")
+            @RequestParam(name="articleId")  Long articleId,
+            HttpServletRequest httpRequest) {
+
+        log.info("接收用户更新文章请求（RocketMQ事务消息），用户ID: {}, 文章标题: {}", userId, request.getTitle());
+
+        try {
+            return userArticleRocketMQService.updateArticleWithRocketMQ(articleId, request, userId, httpRequest);
+        } catch (Exception e) {
+            log.error("用户更新文章失败（RocketMQ事务消息），用户ID: {}, 标题: {}", userId, request.getTitle(), e);
             return Result.error("更新文章失败：" + e.getMessage());
         }
     }
@@ -246,4 +274,21 @@ public class UserArticleController {
         }
     }
 
+    /**
+     * 验证Dubbo Seata过滤器配置
+     * 检查RocketMQ场景下的Dubbo Reference是否正确排除了Seata过滤器
+     */
+    @GetMapping("/debug/dubbo-filter-verify")
+    @Operation(summary = "验证Dubbo Seata过滤器配置", description = "检查RocketMQ专用的Dubbo Reference过滤器配置是否正确，用于排查branchType为null的问题")
+    public Result<String> verifyDubboSeataFilterConfig() {
+        log.info("接收Dubbo Seata过滤器配置验证请求");
+        
+        try {
+            String verificationReport = dubboSeataFilterVerifier.verifyFilterConfigurationAtRuntime();
+            return Result.success(verificationReport);
+        } catch (Exception e) {
+            log.error("Dubbo Seata过滤器配置验证失败", e);
+            return Result.error("验证失败：" + e.getMessage());
+        }
+    }
 } 

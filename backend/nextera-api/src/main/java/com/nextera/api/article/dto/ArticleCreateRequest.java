@@ -3,6 +3,9 @@ package com.nextera.api.article.dto;
 import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
 import java.io.Serializable;
 
 /**
@@ -12,6 +15,7 @@ import java.io.Serializable;
  * @since 2025-06-16
  */
 @Data
+@Accessors(chain = true)
 public class ArticleCreateRequest implements Serializable {
 
     private static final long serialVersionUID = 1L;

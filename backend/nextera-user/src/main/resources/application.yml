@@ -33,3 +33,41 @@ spring:
     config:
       import-check:
         enabled: false
+
+## RocketMQ配置
+#rocketmq:
+#  name-server: localhost:9876
+#  producer:
+#    group: ${spring.application.name}_PRODUCER_GROUP
+#    send-message-timeout: 30000
+#    retry-times-when-send-failed: 3
+#    retry-times-when-send-async-failed: 3
+#    max-message-size: 4194304
+#    compress-message-body-threshold: 4096
+#    retry-another-broker-when-not-store-ok: true
+#  consumer:
+#    pull-batch-size: 32
+
+# Seata配置 - 针对RocketMQ事务监听器场景优化
+#seata:
+#  enabled: true
+#  client:
+#    # 允许全局事务，但排除特定包
+#    disable-global-transaction: false
+#  service:
+#    # 精确排除RocketMQ相关包，避免与RocketMQ事务监听器冲突
+#    disable-global-transaction-scanner-packages:
+#      - com.nextera.user.listener.ArticleUpdateTransactionListener
+#      - com.nextera.user.service.UserArticleRocketMQNonTxService
+#      - org.apache.rocketmq
+#  # 配置事务分组，但不影响RocketMQ事务监听器
+#  tx-service-group: nextera-user-group
+#  # 启用数据源代理，但RocketMQ事务监听器使用独立事务管理器
+#  enable-auto-data-source-proxy: true
+#
+#  # 额外配置：指定不参与Seata全局事务的Bean
+#  exclude-for-auto-proxying:
+#    - rocketmqTransactionManager
+#    - userArticleRocketMQService  # RocketMQ事务相关的服务完全排除Seata
+#    - rocketmqArticleService
+#    - rocketMQDubboConfig
