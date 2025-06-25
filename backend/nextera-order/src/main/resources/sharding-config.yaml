@@ -1,0 +1,107 @@
+# ShardingSphere 5.5.2 JDBC 驱动配置
+mode:
+  type: Standalone
+  repository:
+    type: JDBC
+
+dataSources:
+  ds0:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://localhost:3306/order_db_0?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8
+    username: root
+    password: nextera123
+    maximumPoolSize: 10
+    minimumIdle: 5
+    connectionTimeout: 30000
+    idleTimeout: 600000
+    maxLifetime: 1800000
+  ds1:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://localhost:3306/order_db_1?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8
+    username: root
+    password: nextera123
+    maximumPoolSize: 10
+    minimumIdle: 5
+    connectionTimeout: 30000
+    idleTimeout: 600000
+    maxLifetime: 1800000
+  ds2:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://localhost:3306/order_db_2?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8
+    username: root
+    password: nextera123
+    maximumPoolSize: 10
+    minimumIdle: 5
+    connectionTimeout: 30000
+    idleTimeout: 600000
+    maxLifetime: 1800000
+  ds3:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://localhost:3306/order_db_3?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8
+    username: root
+    password: nextera123
+    maximumPoolSize: 10
+    minimumIdle: 5
+    connectionTimeout: 30000
+    idleTimeout: 600000
+    maxLifetime: 1800000
+
+rules:
+  - !SHARDING
+    tables:
+      t_order:
+        actualDataNodes: ds$->{0..3}.t_order_$->{0..3}
+        databaseStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: order_database_inline
+        tableStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: order_table_inline
+        keyGenerateStrategy:
+          column: order_id
+          keyGeneratorName: custom_keygen
+      t_order_item:
+        actualDataNodes: ds$->{0..3}.t_order_item_$->{0..3}
+        databaseStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: order_database_inline
+        tableStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: order_item_table_inline
+        keyGenerateStrategy:
+          column: order_item_id
+          keyGeneratorName: custom_keygen
+
+    bindingTables:
+      - t_order,t_order_item
+
+    shardingAlgorithms:
+      order_database_inline:
+        type: INLINE
+        props:
+          algorithm-expression: ds$->{user_id.hashCode().abs() % 4}
+      order_table_inline:
+        type: INLINE
+        props:
+          algorithm-expression: t_order_$->{user_id.hashCode().abs() % 4}
+      order_item_table_inline:
+        type: INLINE
+        props:
+          algorithm-expression: t_order_item_$->{user_id.hashCode().abs() % 4}
+
+    keyGenerators:
+      custom_keygen:
+        type: CUSTOM
+        props:
+          business-type: order
+
+props:
+  sql-show: true 

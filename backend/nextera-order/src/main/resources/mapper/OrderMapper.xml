@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nextera.order.mapper.OrderMapper">
+
+    <!-- 订单结果映射 -->
+    <resultMap id="BaseResultMap" type="com.nextera.order.entity.Order">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="order_no" jdbcType="VARCHAR" property="orderNo"/>
+        <result column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="total_amount" jdbcType="DECIMAL" property="totalAmount"/>
+        <result column="status" jdbcType="TINYINT" property="status"/>
+        <result column="payment_method" jdbcType="TINYINT" property="paymentMethod"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="created_time" jdbcType="TIMESTAMP" property="createdTime"/>
+        <result column="updated_time" jdbcType="TIMESTAMP" property="updatedTime"/>
+    </resultMap>
+
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        id, order_no, user_id, total_amount, status, payment_method, remark, created_time, updated_time
+    </sql>
+
+    <!-- 分页查询订单 -->
+    <select id="selectOrderPage" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM t_order
+        <where>
+            <if test="query.userId != null">
+                AND user_id = #{query.userId}
+            </if>
+            <if test="query.orderNo != null and query.orderNo != ''">
+                AND order_no = #{query.orderNo}
+            </if>
+            <if test="query.status != null">
+                AND status = #{query.status}
+            </if>
+            <if test="query.paymentMethod != null">
+                AND payment_method = #{query.paymentMethod}
+            </if>
+            <if test="query.createdTimeStart != null">
+                AND created_time &gt; #{query.createdTimeStart}
+            </if>
+            <if test="query.createdTimeEnd != null">
+                AND created_time &lt; #{query.createdTimeEnd}
+            </if>
+        </where>
+        ORDER BY created_time DESC
+    </select>
+
+    <!-- 根据用户ID查询订单列表 -->
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM t_order
+        WHERE user_id = #{userId}
+        ORDER BY created_time DESC
+    </select>
+
+    <!-- 根据订单号查询订单 -->
+    <select id="selectByOrderNo" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM t_order
+        WHERE order_no = #{orderNo}
+        LIMIT 1
+    </select>
+
+    <!-- 更新订单状态 -->
+    <update id="updateOrderStatus">
+        UPDATE t_order
+        SET status = #{status}, updated_time = NOW()
+        WHERE id = #{orderId}
+    </update>
+
+</mapper> 

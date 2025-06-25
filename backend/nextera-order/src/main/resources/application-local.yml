@@ -1,0 +1,77 @@
+server:
+  port: 7088
+
+spring:
+  # 使用 ShardingSphere JDBC 驱动
+  datasource:
+    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+    url: jdbc:shardingsphere:classpath:sharding-config.yaml
+  main:
+    allow-bean-definition-overriding: true
+
+  # Redis配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+      database: 2
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      update-strategy: NOT_NULL
+      insert-strategy: NOT_NULL
+  mapper-locations: classpath*:mapper/**/*Mapper.xml
+
+# Dubbo配置
+dubbo:
+  application:
+    name: dubbo-nextera-order
+  registry:
+    address: nacos://localhost:8848?namespace=253e9832-53e9-43eb-bfae-4c311a7ce0fa&group=DEFAULT_GROUP
+    parameters:
+      register-consumer-url: true
+      namespace: 253e9832-53e9-43eb-bfae-4c311a7ce0fa
+      username: nacos
+      password: nacos
+  protocol:
+    host: 192.168.56.1
+    name: dubbo
+    port: 20889
+  scan:
+    base-packages: com.nextera.order.dubbo
+
+# 日志配置
+logging:
+  level:
+    com.nextera.order: DEBUG
+    org.apache.shardingsphere: DEBUG
+    org.apache.dubbo: INFO
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n'
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always 

@@ -15,10 +15,14 @@
     <modules>
         <module>nextera-common</module>
         <module>nextera-api</module>
+        <module>nextera-id-api</module>
+        <module>nextera-id</module>
         <module>nextera-gateway</module>
         <module>nextera-auth</module>
         <module>nextera-user</module>
         <module>nextera-article</module>
+        <module>nextera-order-api</module>
+        <module>nextera-order</module>
 <!--        <module>nextera-manage-user</module>-->
     </modules>
 
@@ -182,6 +186,16 @@
             <dependency>
                 <groupId>com.nextera</groupId>
                 <artifactId>nextera-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nextera</groupId>
+                <artifactId>nextera-id-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nextera</groupId>
+                <artifactId>nextera-order-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

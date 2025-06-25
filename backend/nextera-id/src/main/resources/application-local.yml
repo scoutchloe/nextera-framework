@@ -1,0 +1,119 @@
+server:
+  port: 7086
+
+spring:
+  application:
+    name: nextera-id
+
+  # Redis配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+      timeout: 5000
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1
+          max-idle: 8
+          min-idle: 0
+
+  # PostgreSQL配置
+  datasource:
+    url: jdbc:postgresql://localhost:54321/nextera_id
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# Dubbo配置
+dubbo:
+  application:
+    name: dubbo-nextera-id
+  protocol:
+    host: 192.168.56.1
+    name: dubbo
+    port: 20885
+  registry:
+    address: nacos://localhost:8848?namespace=253e9832-53e9-43eb-bfae-4c311a7ce0fa&group=DEFAULT_GROUP
+    username: nacos
+    password: nacos
+  provider:
+    timeout: 5000
+    retries: 0
+  consumer:
+    timeout: 5000
+    retries: 0
+
+# Nextera ID配置
+nextera:
+  id:
+    # 默认ID生成策略: REDIS | POSTGRESQL
+    default-strategy: REDIS
+    # Redis配置
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+      # ID批量获取大小
+      batch-size: 100
+      # ID缓存过期时间(秒)
+      expire-time: 3600
+    # PostgreSQL配置
+    postgresql:
+      url: jdbc:postgresql://localhost:54321/nextera_id
+      username: postgres
+      password: postgres
+      # ID批量获取大小
+      batch-size: 1000
+    # 业务类型配置
+    business-types:
+      user:
+        strategy: REDIS
+        batch-size: 100
+        start-value: 1
+      order:
+        strategy: POSTGRESQL
+        batch-size: 500
+        start-value: 1
+      article:
+        strategy: REDIS
+        batch-size: 50
+        start-value: 1
+
+# 监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,dubbo
+  endpoint:
+    health:
+      show-details: always
+
+# 日志配置
+logging:
+  level:
+    com.nextera.id: DEBUG
+    org.apache.dubbo: INFO
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n'

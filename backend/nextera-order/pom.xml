@@ -11,10 +11,10 @@
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>nextera-article</artifactId>
+    <artifactId>nextera-order</artifactId>
     <packaging>jar</packaging>
-    <name>Nextera Article</name>
-    <description>文章服务，负责文章管理、分类管理等功能</description>
+    <name>Nextera Order</name>
+    <description>订单服务，负责订单管理、分库分表等功能</description>
 
     <dependencies>
         <!-- Spring Boot Web -->
@@ -41,12 +41,6 @@
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
         </dependency>
 
-        <!-- Seata 分布式事务 -->
-<!--        <dependency>-->
-<!--            <groupId>com.alibaba.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-alibaba-seata</artifactId>-->
-<!--        </dependency>-->
-
         <!-- OpenFeign -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -57,6 +51,13 @@
         <dependency>
             <groupId>org.apache.dubbo</groupId>
             <artifactId>dubbo-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- ShardingSphere JDBC Core -->
+        <dependency>
+            <groupId>org.apache.shardingsphere</groupId>
+            <artifactId>shardingsphere-jdbc</artifactId>
+            <version>5.5.2</version>
         </dependency>
 
         <!-- MyBatis Plus -->
@@ -95,9 +96,16 @@
             <artifactId>nextera-api</artifactId>
         </dependency>
 
+        <!-- ID API模块 -->
         <dependency>
             <groupId>com.nextera</groupId>
             <artifactId>nextera-id-api</artifactId>
+        </dependency>
+
+        <!-- Order API模块 -->
+        <dependency>
+            <groupId>com.nextera</groupId>
+            <artifactId>nextera-order-api</artifactId>
         </dependency>
 
         <!-- Spring Boot Cache -->
@@ -123,6 +131,13 @@
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
