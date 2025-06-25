@@ -227,4 +227,14 @@ public class OrderServiceImpl implements OrderService {
         BeanUtils.copyProperties(orderItem, response);
         return response;
     }
+
+    @Override
+    public Order getById(Long orderId) {
+        return orderMapper.selectById(orderId);
+    }
+
+    @Override
+    public List<OrderItem> getOrderItemsByOrderId(Long orderId) {
+        return orderItemMapper.selectByOrderId(orderId);
+    }
 } 

@@ -32,4 +32,52 @@ spring:
   nacos:
     config:
       import-check:
-        enabled: true 
+        enabled: true
+
+  # ElasticSearch配置
+  elasticsearch:
+    uris: http://localhost:9200
+    username: 
+    password: 
+    connection-timeout: 10s
+    socket-timeout: 30s
+
+# ElasticSearch功能开关（设置为false以禁用ElasticSearch功能）
+elasticsearch:
+  enabled: true
+
+
+# RocketMQ功能开关（设置为false以禁用RocketMQ功能）
+rocketmq:
+  enabled: true
+  name-server: localhost:9876
+  producer:
+    group: nextera-order-producer-group
+    send-message-timeout: 3000
+    compress-message-body-threshold: 4096
+    max-message-size: 4194304
+    retry-times-when-send-failed: 2
+    retry-times-when-send-async-failed: 2
+    retry-next-server: true
+    access-key: 
+    secret-key: 
+  consumer:
+    group: nextera-order-consumer-group
+    consume-timeout: 15000
+    max-reconsume-times: 16
+    access-key: 
+    secret-key:
+
+  # Redis配置
+  redis:
+    host: localhost
+    port: 6379
+    password: 
+    database: 0
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 200
+        max-wait: -1ms
+        max-idle: 20
+        min-idle: 5

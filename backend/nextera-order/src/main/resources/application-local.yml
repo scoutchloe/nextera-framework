@@ -43,6 +43,7 @@ mybatis-plus:
 dubbo:
   application:
     name: dubbo-nextera-order
+    qos-enable: false
   registry:
     address: nacos://localhost:8848?namespace=253e9832-53e9-43eb-bfae-4c311a7ce0fa&group=DEFAULT_GROUP
     parameters:
@@ -65,6 +66,10 @@ logging:
     org.apache.dubbo: INFO
   pattern:
     console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n'
+
+# ElasticSearch功能开关（如需启用ES功能，设置为true）
+elasticsearch:
+  enabled: false
 
 # 管理端点配置
 management:

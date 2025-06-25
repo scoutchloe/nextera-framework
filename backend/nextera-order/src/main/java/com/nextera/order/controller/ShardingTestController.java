@@ -39,12 +39,12 @@ public class ShardingTestController {
         try {
             for (int i = 0; i < count; i++) {
                 // 创建不同用户ID的订单，触发不同的分片
-                Long userId = (long) (i + 1000);
+                Long userId = (long) (i + 10000);
                 
                 CreateOrderRequest request = new CreateOrderRequest();
                 request.setUserId(userId);
                 request.setPaymentMethod(1); // 微信支付
-                request.setRemark("分库分表测试订单 - " + i);
+                request.setRemark("#分库分表测试订单# - " + i);
                 
                 // 创建订单明细 - 暂时为空，等API模块完善后再添加
                  CreateOrderRequest.OrderItemDto item = new CreateOrderRequest.OrderItemDto();

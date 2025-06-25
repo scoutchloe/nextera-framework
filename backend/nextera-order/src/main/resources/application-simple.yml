@@ -1,0 +1,41 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: nextera-order
+    
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/nextera_order?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: root
+    password: 123456
+    
+  # JPA配置
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    
+  # Redis配置
+  redis:
+    host: localhost
+    port: 6379
+    password: 
+    database: 0
+    timeout: 2000ms
+    
+# 禁用ElasticSearch
+elasticsearch:
+  enabled: false
+
+# 禁用RocketMQ
+rocketmq:
+  enabled: false
+
+# 日志配置
+logging:
+  level:
+    com.nextera: DEBUG
+    org.springframework.data: INFO 

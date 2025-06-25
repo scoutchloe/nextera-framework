@@ -1,9 +1,13 @@
 package com.nextera.order.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.nextera.order.entity.Order;
+import com.nextera.order.entity.OrderItem;
 import com.nextera.orderapi.dto.CreateOrderRequest;
 import com.nextera.orderapi.dto.OrderQueryRequest;
 import com.nextera.orderapi.dto.OrderResponse;
+
+import java.util.List;
 
 /**
  * 订单服务接口
@@ -61,4 +65,20 @@ public interface OrderService {
      * @return 是否成功
      */
     boolean cancelOrder(Long orderId);
+
+    /**
+     * 根据订单ID获取订单实体（用于数据同步）
+     *
+     * @param orderId 订单ID
+     * @return 订单实体
+     */
+    Order getById(Long orderId);
+
+    /**
+     * 根据订单ID获取订单明细列表（用于数据同步）
+     *
+     * @param orderId 订单ID
+     * @return 订单明细列表
+     */
+    List<OrderItem> getOrderItemsByOrderId(Long orderId);
 } 

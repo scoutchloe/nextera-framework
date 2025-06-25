@@ -134,7 +134,7 @@ services:
 
   # Elasticsearch
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.18.0
     container_name: nextera-elasticsearch
     environment:
       - node.name=nextera-elasticsearch
@@ -171,7 +171,7 @@ services:
 
   # Kibana
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.11.0
+    image: docker.elastic.co/kibana/kibana:8.18.0
     container_name: nextera-kibana
     environment:
       - SERVER_NAME=nextera-kibana
@@ -275,6 +275,109 @@ services:
       timeout: 10s
       retries: 3
 
+  # Canal Admin
+  canal-admin:
+    image: canal/canal-admin:v1.1.8
+    container_name: nextera-canal-admin
+    ports:
+      - "8089:8089"
+    environment:
+      # 基础配置
+      TZ: Asia/Shanghai
+      JAVA_OPTS: "-Xms256m -Xmx256m -Xmn128m -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
+      
+      # 服务器配置
+      server.port: 8089
+      server.servlet.context-path: /
+      
+      # 数据库配置
+      spring.datasource.address: mysql:3306
+      spring.datasource.database: canal_manager
+      spring.datasource.username: root
+      spring.datasource.password: nextera123
+      spring.datasource.driver-class-name: com.mysql.cj.jdbc.Driver
+      spring.datasource.url: jdbc:mysql://mysql:3306/canal_manager?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      spring.datasource.hikari.maximum-pool-size: 30
+      spring.datasource.hikari.minimum-idle: 5
+      spring.datasource.hikari.idle-timeout: 300000
+      spring.datasource.hikari.connection-timeout: 30000
+      spring.datasource.hikari.max-lifetime: 1800000
+      
+      # Canal Admin 认证配置
+      canal.adminUser: admin
+      canal.adminPasswd: admin
+      
+      # 日志配置
+      logging.level.com.alibaba.otter.canal: INFO
+      logging.level.org.springframework: WARN
+    volumes:
+      - canal_admin_logs:/home/admin/canal-admin/logs
+    depends_on:
+      - mysql
+    networks:
+      - nextera-network
+    restart: unless-stopped
+
+  # Canal Server
+  canal-server:
+    image: canal/canal-server:v1.1.8
+    container_name: nextera-canal-server
+    ports:
+      - "11111:11111"
+      - "11112:11112"
+    environment:
+      # Canal 基础配置
+      TZ: Asia/Shanghai
+      JAVA_OPTS: "-Xms512m -Xmx512m -Xmn256m -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
+      
+      # Canal 服务器配置
+      canal.id: 1
+      canal.ip: ""
+      canal.port: 11111
+      canal.metrics.pull.port: 11112
+      canal.destinations: nextera-order
+      canal.conf.dir: /opt/canal/conf
+      canal.auto.scan: "true"
+      canal.auto.scan.interval: 5
+      canal.serverMode: rocketMQ
+      
+      # 数据库连接配置
+      canal.instance.master.address: mysql:3306
+      canal.instance.dbUsername: canal
+      canal.instance.dbPassword: canal
+      canal.instance.connectionCharset: UTF-8
+      canal.instance.enableDruid: "false"
+      
+      # 表过滤配置 - 支持分库分表 (测试用宽泛规则)
+      canal.instance.filter.regex: "order_db_.*\\..*"
+      canal.instance.filter.black.regex: ""
+      
+      # RocketMQ 配置
+      canal.mq.topic: nextera-order-sync
+      canal.mq.partition: 0
+      canal.mq.partitionsNum: 4
+      canal.mq.partitionHash: ".*\\..*"
+      canal.mq.dynamicTopic: order_db_[0-3]\\..*
+      
+      rocketmq.producer.group: canal-producer
+      rocketmq.enable.message.trace: "false"
+      rocketmq.customized.trace.topic: ""
+      rocketmq.namespace: ""
+      rocketmq.namesrv.addr: rocketmq-nameserver:9876
+      rocketmq.retry.times.when.send.failed: 0
+      rocketmq.vip.channel.enabled: "false"
+      rocketmq.tag: ""
+    volumes:
+      - canal_server_logs:/opt/canal/logs
+      - ./docker/canal/conf:/opt/canal/conf
+    depends_on:
+      - mysql
+      - rocketmq-nameserver
+      - rocketmq-broker
+    networks:
+      - nextera-network
+    restart: unless-stopped
+
 volumes:
   mysql_data:
   redis_data:
@@ -287,6 +390,10 @@ volumes:
   kibana_data:
   prometheus_data:
   grafana_data:
+  canal_admin_logs:
+  canal_server_logs:
+  canal_server_conf:
+    driver: local
 
 networks:
   nextera-network:

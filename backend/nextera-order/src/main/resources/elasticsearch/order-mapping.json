@@ -1,0 +1,92 @@
+{
+  "properties": {
+    "id": {
+      "type": "long"
+    },
+    "orderNo": {
+      "type": "keyword",
+      "index": true
+    },
+    "userId": {
+      "type": "long",
+      "index": true
+    },
+    "totalAmount": {
+      "type": "double",
+      "index": true
+    },
+    "status": {
+      "type": "integer",
+      "index": true
+    },
+    "statusDescription": {
+      "type": "keyword",
+      "index": false
+    },
+    "paymentMethod": {
+      "type": "integer",
+      "index": true
+    },
+    "paymentMethodDescription": {
+      "type": "keyword",
+      "index": false
+    },
+    "remark": {
+      "type": "text",
+      "analyzer": "ik_smart",
+      "search_analyzer": "ik_smart",
+      "index": true
+    },
+    "createdTime": {
+      "type": "date",
+      "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis",
+      "index": true
+    },
+    "updatedTime": {
+      "type": "date",
+      "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis",
+      "index": true
+    },
+    "orderItems": {
+      "type": "nested",
+      "properties": {
+        "id": {
+          "type": "long"
+        },
+        "productId": {
+          "type": "long",
+          "index": true
+        },
+        "productName": {
+          "type": "text",
+          "analyzer": "ik_smart",
+          "search_analyzer": "ik_smart",
+          "index": true,
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "productPrice": {
+          "type": "double",
+          "index": true
+        },
+        "quantity": {
+          "type": "integer",
+          "index": true
+        },
+        "totalPrice": {
+          "type": "double",
+          "index": true
+        },
+        "createdTime": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis",
+          "index": true
+        }
+      }
+    }
+  }
+} 
