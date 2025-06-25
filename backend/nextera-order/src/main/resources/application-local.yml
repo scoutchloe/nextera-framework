@@ -14,7 +14,7 @@ spring:
     redis:
       host: localhost
       port: 6379
-      password: 
+      password:
       database: 2
       timeout: 10000ms
       lettuce:
@@ -46,16 +46,16 @@ dubbo:
   registry:
     address: nacos://localhost:8848?namespace=253e9832-53e9-43eb-bfae-4c311a7ce0fa&group=DEFAULT_GROUP
     parameters:
-      register-consumer-url: true
+      # register-consumer-url: true
       namespace: 253e9832-53e9-43eb-bfae-4c311a7ce0fa
       username: nacos
       password: nacos
   protocol:
     host: 192.168.56.1
     name: dubbo
-    port: 20889
+    port: 20887
   scan:
-    base-packages: com.nextera.order.dubbo
+    base-packages: com.nextera.order.dubbo.impl
 
 # 日志配置
 logging:
