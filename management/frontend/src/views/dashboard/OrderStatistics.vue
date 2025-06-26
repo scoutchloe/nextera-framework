@@ -1,6 +1,6 @@
 <template>
   <div class="order-statistics-wrapper">
-    <h2 class="section-title">📊 订单统计数据</h2>
+    <h2 class="section-title">📊 {{ $t('dashboard.orderSumData.dataTitle') }}</h2>
     
     <div class="stats-container">
       <!-- 概览统计 -->
@@ -9,7 +9,7 @@
           <div class="stat-icon">📅</div>
           <div class="stat-content">
             <div class="stat-number">{{ stats.todayOrderCount }}</div>
-            <div class="stat-label">今日订单</div>
+            <div class="stat-label">{{ $t('dashboard.orderSumData.todayOrders') }}</div>
           </div>
         </div>
 
@@ -17,7 +17,7 @@
           <div class="stat-icon">📆</div>
           <div class="stat-content">
             <div class="stat-number">{{ stats.monthOrderCount }}</div>
-            <div class="stat-label">本月订单</div>
+            <div class="stat-label">{{ $t('dashboard.orderSumData.monthOrders') }}</div>
           </div>
         </div>
 
@@ -25,7 +25,7 @@
           <div class="stat-icon">📈</div>
           <div class="stat-content">
             <div class="stat-number">{{ stats.totalOrderCount }}</div>
-            <div class="stat-label">总订单数</div>
+            <div class="stat-label">{{ $t('dashboard.orderSumData.totalOrders') }}</div>
           </div>
         </div>
       </div>
@@ -33,9 +33,9 @@
       <!-- 商品排行榜 -->
       <div class="ranking-section">
         <div class="section-header">
-          <h3>🏆 热销商品排行</h3>
+          <h3>🏆 {{ $t('dashboard.hotProductsRange.dataTitle') }} </h3>
           <el-button @click="refreshData" size="small" :loading="loading" type="primary">
-            刷新
+            {{ $t('dashboard.hotProductsRange.refresh') }}
           </el-button>
         </div>
         
@@ -49,7 +49,7 @@
       </div>
 
       <!-- 调试信息 -->
-      <div class="debug-section">
+      <div class="debug-section" style="display: none;">
         <p><strong>组件状态:</strong> {{ loading ? '加载中...' : '已加载' }}</p>
         <p><strong>加载时间:</strong> {{ loadTime }}</p>
         <p><strong>数据更新:</strong> {{ updateTime }}</p>
@@ -60,6 +60,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from '@/composables/useI18n'
+const { t } = useI18n()
 
 const loading = ref(false)
 const loadTime = ref('')

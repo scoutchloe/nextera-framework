@@ -359,6 +359,20 @@ export default {
     time: {
       minutesAgo: 'minutes ago',
       hoursAgo: 'hours ago'
+    },
+
+     orderSumData: {
+      dataTitle: 'Order Summary',
+      todayOrders: 'Today\'s Orders',
+      monthOrders: 'month Orders',
+      totalOrders: 'Total Orders'
+    },
+
+    hotProductsRange: {
+      dataTitle: 'Hot Products',
+      refresh: 'Refresh',
+      
+      noData: 'No hot products data available'
     }
   },
 
@@ -390,7 +404,7 @@ export default {
       status: 'Status',
       publishTime: 'Publish Time',
       createTime: 'Create Time',
-      operation: 'Operation',
+      actions: 'Operation',
       // Status
       draft: 'Draft',
       published: 'Published',
@@ -443,6 +457,37 @@ export default {
       description: 'Description',
       articleCount: 'Article Count'
     }
+  },
+
+   order: {
+    search: "Order search",
+    orderNo: "OrderNo",
+    inputOrderNo: "Please enter order no",
+    username: "Username",
+    inputUsername: "Please enter username",
+    status: {
+      title: 'OrderStatus',
+      waitPay: 'waiting for payment',
+      paid: 'paid',
+      waitDelivery: 'waiting for delivery',
+      delivered: 'delivered',
+      completed: 'completed',
+      cancelled: 'cancelled',
+    },
+    refresh: 'Refresh',
+    exportExcel: 'Export Excel',
+    table:{
+      orderNo: 'OrderNo',
+      username: 'Username',
+      orderPrice: 'Order Price',
+      orderStatus: 'Order Status',
+      payStatus: 'Payment Status',
+      payment: 'Payment Method',
+      createTime: 'Create Time',
+      updateTime: 'Update Time',
+      actions: 'Actions',
+    }
+    
   },
 
   // Error Pages

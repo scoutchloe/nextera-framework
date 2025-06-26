@@ -112,7 +112,7 @@
         </el-table-column>
         <el-table-column prop="publishTime" :label="$t('article.list.publishTime')" width="180" />
         <el-table-column prop="createTime" :label="$t('article.list.createTime')" width="180" />
-        <el-table-column :label="$t('article.list.operation')" width="300" fixed="right">
+        <el-table-column :label="$t('article.list.actions')" width="300" fixed="right">
           <template #default="{ row }">
             <el-button
               type="primary"

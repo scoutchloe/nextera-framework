@@ -1,3 +1,7 @@
+import { OrderStatus } from "@/api/orderApi";
+import { inputEmits } from "element-plus";
+import { ca } from "element-plus/es/locales.mjs";
+
 export default {
   // 通用
   common: {
@@ -359,6 +363,20 @@ export default {
     time: {
       minutesAgo: '分钟前',
       hoursAgo: '小时前'
+    },
+
+    orderSumData: {
+      dataTitle: '订单统计数据',
+      todayOrders: '今日订单数',
+      monthOrders: '本月订单数',
+      totalOrders: '总订单数'
+    },
+
+    hotProductsRange: {
+      dataTitle: '热销商品排行',
+      refresh: '刷新',
+      
+      noData: '暂无热销商品数据'
     }
   },
 
@@ -443,6 +461,37 @@ export default {
       description: '标签描述',
       articleCount: '文章数量'
     }
+  },
+
+  order: {
+    search: "订单搜索",
+    orderNo: "订单号",
+    inputOrderNo: "请输入订单号",
+    username: "用户名",
+    inputPutUsername: "请输入用户名",
+    status: {
+      title: '订单状态',
+      waitPay: '待支付',
+      paid: '已支付',
+      waitDelivery: '待发货',
+      delivered: '已发货',
+      completed: '已完成',
+      cancelled: '已取消',
+    },
+    refresh: '刷新',
+    exportExcel: '导出Excel',
+    table:{
+      orderNo: '订单号',
+      username: '用户名',
+      orderPrice: '订单金额',
+      orderStatus: '订单状态',
+      payStatus: '支付状态',
+      payment: '支付方式',
+      createTime: '创建时间',
+      updateTime: '更新时间',
+      actions: '操作',
+    }
+
   },
 
   // 错误页面

@@ -4,7 +4,7 @@
     <el-card class="search-card" shadow="never">
       <template #header>
         <div class="card-header">
-          <span class="card-title">订单搜索</span>
+          <span class="card-title">{{ $t('order.search') }}</span>
           <el-button 
             type="primary" 
             @click="toggleSearchExpanded"
@@ -25,27 +25,27 @@
         <!-- 基础搜索 -->
         <el-row :gutter="20">
           <el-col :span="6">
-            <el-form-item label="订单号">
+            <el-form-item :label="$t('order.orderNo')">
               <el-input 
                 v-model="searchForm.orderNo" 
-                placeholder="请输入订单号"
+                :placeholder="$t('order.inputOrderNo')"
                 clearable
                 @keyup.enter="handleSearch"
               />
             </el-form-item>
           </el-col>
           <el-col :span="6">
-            <el-form-item label="用户名">
+            <el-form-item :label="$t('order.username')">
               <el-input 
                 v-model="searchForm.username" 
-                placeholder="请输入用户名"
+                :placeholder="$t('order.inputUsername')"
                 clearable
                 @keyup.enter="handleSearch"
               />
             </el-form-item>
           </el-col>
           <el-col :span="6">
-            <el-form-item label="订单状态">
+            <el-form-item :label="$t('order.status.title')">
               <el-select 
                 v-model="searchForm.statusList" 
                 placeholder="选择状态"
@@ -125,7 +125,7 @@
     <el-card class="action-card" shadow="never">
       <div class="action-buttons">
         <el-button type="primary" @click="handleRefresh" :loading="loading">
-          刷新
+          {{ $t('order.refresh') }}
         </el-button>
         <el-button 
           type="success" 
@@ -133,9 +133,9 @@
           :loading="exporting"
           :disabled="!hasData"
         >
-          导出Excel
+          {{ $t('order.exportExcel') }}
         </el-button>
-        <el-button 
+        <el-button style="display: none;"
           type="warning" 
           @click="handleBatchSyncToES" 
           :loading="batchSyncing"
@@ -163,7 +163,7 @@
         @sort-change="handleSortChange"
       >
         <el-table-column type="selection" width="55" fixed="left" />
-        <el-table-column prop="orderNo" label="订单号" width="180" fixed="left">
+        <el-table-column prop="orderNo" :label="$t('order.table.orderNo')" width="180" fixed="left">
           <template #default="{ row }">
             <el-button 
               type="text" 
@@ -174,27 +174,27 @@
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column prop="username" label="用户名" width="120" />
-        <el-table-column prop="totalAmount" label="订单金额" width="120" sortable="custom">
+        <el-table-column prop="username" :label="$t('order.table.username')" width="120" />
+        <el-table-column prop="totalAmount" :label="$t('order.table.orderPrice')" width="120" sortable="custom">
           <template #default="{ row }">
             <span class="amount">¥{{ (row.totalAmount || 0).toFixed(2) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="订单状态" width="100">
+        <el-table-column prop="status" :label="$t('order.table.orderStatus')" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusColor(row.status)">
               {{ getStatusDescription(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="paymentMethod" label="支付方式" width="100">
+        <el-table-column prop="paymentMethod" :label="$t('order.table.payment')" width="100">
           <template #default="{ row }">
             {{ getPaymentMethodDescription(row.paymentMethod) }}
           </template>
         </el-table-column>
-        <el-table-column prop="createdTime" label="创建时间" width="160" sortable="custom" />
-        <el-table-column prop="updatedTime" label="更新时间" width="160" sortable="custom" />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column prop="createdTime" :label="$t('order.table.createTime')" width="160" sortable="custom" />
+        <el-table-column prop="updatedTime" :label="$t('order.table.updateTime')" width="160" sortable="custom" />
+        <el-table-column :label="$t('order.table.actions')" width="200" fixed="right">
           <template #default="{ row }">
             <div class="action-buttons">
               <el-button type="text" size="small" @click="showOrderDetail(row)">
@@ -207,15 +207,16 @@
               >
                 状态历史
               </el-button>
-              <el-button 
+              <!-- <el-button 
                 type="text" 
                 size="small" 
                 @click="handleSyncToES(row)"
                 :loading="row.syncing"
               >
                 同步ES
-              </el-button>
+              </el-button> -->
             </div>
+
             
             <!-- 状态更新区域 -->
             <div class="status-update-area" v-if="getNextStatus(row.status)">
@@ -254,7 +255,7 @@
       v-model="orderDetailVisible"
       title="订单详情"
       direction="rtl"
-      size="60%"
+      size="50%"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
     >
@@ -331,7 +332,7 @@
         </div>
 
         <!-- 操作按钮 -->
-        <div class="detail-actions">
+        <div class="detail-actions" style="display: none;">
           <div class="action-row">
             <el-button @click="orderDetailVisible = false">关闭</el-button>
             <el-button type="primary" @click="refreshOrderDetail" :loading="detailLoading">刷新</el-button>
@@ -416,6 +417,8 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Refresh, Loading } from '@element-plus/icons-vue'
 // import { orderApi } from '@/api/orderApi'
+import { useI18n } from '@/composables/useI18n'
+const { t } = useI18n()
 
 // 获取认证头部的辅助函数
 const getAuthHeaders = () => {

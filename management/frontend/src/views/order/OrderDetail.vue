@@ -117,12 +117,12 @@
         </el-card>
 
         <!-- 状态操作 -->
-        <el-card class="actions-card" shadow="never">
+        <el-card class="actions-card" shadow="never" style="display:none;">
           <template #header>
             <span class="card-title">状态操作</span>
           </template>
 
-          <div class="status-actions">
+          <div class="status-actions" style="display: none;">
             <el-button-group>
                            <el-button
                v-for="status in getAvailableStatuses"
