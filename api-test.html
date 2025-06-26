@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单状态更新API测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .recommended { border-color: #007bff; background-color: #f8f9fa; }
+        button { margin: 5px; padding: 8px 15px; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .debug { background: #fff3cd; color: #856404; margin: 10px 0; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>订单状态更新API测试</h1>
+    
+    <div class="test-section">
+        <h3>测试参数</h3>
+        <label>订单ID: <input type="number" id="orderId" value="1"></label><br><br>
+        <label>新状态: 
+            <select id="newStatus">
+                <option value="1">待支付</option>
+                <option value="2" selected>已支付</option>
+                <option value="3">已发货</option>
+                <option value="4">已完成</option>
+                <option value="5">已取消</option>
+            </select>
+        </label><br><br>
+        <label>API基础URL: <input type="text" id="baseUrl" value="/api" style="width: 200px;"></label>
+    </div>
+
+    <div class="test-section recommended">
+        <h3>🎯 推荐方式：查询参数传递 ?status=xxx</h3>
+        <button onclick="testQueryParams()" style="background-color: #007bff; color: white;">测试查询参数方式</button>
+        <pre>PUT /order/{id}/status?status={newStatus}</pre>
+        <div id="debugQuery" class="debug"></div>
+        <div id="resultQuery" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>方式1：请求体传递参数</h3>
+        <button onclick="testMethod1()">测试方式1</button>
+        <pre>PUT /order/{id}/status
+Content-Type: application/json
+{
+  "status": newStatus,
+  "orderId": orderId
+}</pre>
+        <div id="result1" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>方式2：路径参数传递</h3>
+        <button onclick="testMethod3()">测试方式2</button>
+        <pre>PUT /order/{id}/status/{newStatus}</pre>
+        <div id="result3" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>方式3：表单数据传递</h3>
+        <button onclick="testMethod4()">测试方式3</button>
+        <pre>PUT /order/{id}/status
+Content-Type: application/x-www-form-urlencoded
+status={newStatus}</pre>
+        <div id="result4" class="result"></div>
+    </div>
+
+    <script>
+        function getValues() {
+            return {
+                orderId: document.getElementById('orderId').value,
+                newStatus: document.getElementById('newStatus').value,
+                baseUrl: document.getElementById('baseUrl').value
+            };
+        }
+
+        function showResult(elementId, success, data) {
+            const element = document.getElementById(elementId);
+            element.className = success ? 'result success' : 'result error';
+            element.innerHTML = `
+                <strong>${success ? '成功' : '失败'}:</strong><br>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+        }
+
+        function showDebug(elementId, info) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `
+                <strong>调试信息:</strong><br>
+                <pre>${info}</pre>
+            `;
+        }
+
+        // 推荐的查询参数方式
+        async function testQueryParams() {
+            const { orderId, newStatus, baseUrl } = getValues();
+            const url = `${baseUrl}/order/${orderId}/status?status=${newStatus}`;
+            
+            showDebug('debugQuery', `请求URL: ${url}\n请求方法: PUT\n参数传递方式: 查询参数`);
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token') || 'test-token'}`
+                    }
+                });
+                const data = await response.json();
+                showResult('resultQuery', response.ok, { 
+                    status: response.status, 
+                    url: url,
+                    data 
+                });
+            } catch (error) {
+                showResult('resultQuery', false, { 
+                    error: error.message,
+                    url: url
+                });
+            }
+        }
+
+        async function testMethod1() {
+            const { orderId, newStatus, baseUrl } = getValues();
+            try {
+                const response = await fetch(`${baseUrl}/order/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token') || 'test-token'}`
+                    },
+                    body: JSON.stringify({
+                        status: parseInt(newStatus),
+                        orderId: parseInt(orderId)
+                    })
+                });
+                const data = await response.json();
+                showResult('result1', response.ok, { status: response.status, data });
+            } catch (error) {
+                showResult('result1', false, { error: error.message });
+            }
+        }
+
+        async function testMethod3() {
+            const { orderId, newStatus, baseUrl } = getValues();
+            try {
+                const response = await fetch(`${baseUrl}/order/${orderId}/status/${newStatus}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token') || 'test-token'}`
+                    }
+                });
+                const data = await response.json();
+                showResult('result3', response.ok, { status: response.status, data });
+            } catch (error) {
+                showResult('result3', false, { error: error.message });
+            }
+        }
+
+        async function testMethod4() {
+            const { orderId, newStatus, baseUrl } = getValues();
+            try {
+                const formData = new URLSearchParams();
+                formData.append('status', newStatus);
+                formData.append('orderId', orderId);
+
+                const response = await fetch(`${baseUrl}/order/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': `Bearer ${localStorage.getItem('token') || 'test-token'}`
+                    },
+                    body: formData
+                });
+                const data = await response.json();
+                showResult('result4', response.ok, { status: response.status, data });
+            } catch (error) {
+                showResult('result4', false, { error: error.message });
+            }
+        }
+
+        // 页面加载时显示当前token和调试信息
+        window.onload = function() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                console.log('当前token:', token);
+            } else {
+                console.log('未找到token，使用测试token');
+            }
+            
+            // 显示当前配置
+            console.log('测试配置:', getValues());
+        };
+    </script>
+</body>
+</html> 

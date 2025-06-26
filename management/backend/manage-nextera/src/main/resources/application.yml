@@ -20,7 +20,7 @@ spring:
       max-request-size: 100MB
       enabled: true
 
-  # ????
+  # 静态路径
   web:
     resources:
       static-locations: classpath:/static/
@@ -36,7 +36,7 @@ spring:
       thread-name-prefix: nextera-task-
 
 
-  # ???
+  # 数据源
   datasource:
     dynamic:
       primary: master
@@ -58,12 +58,6 @@ spring:
           password: nextera123
           driver-class-name: com.mysql.cj.jdbc.Driver
 
-    #    url: jdbc:mysql://127.0.0.1:3306/managementlightHouse?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    #    #url: jdbc:mysql://127.0.0.1:3306/lightHouse?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    #    username: root
-    #    password: 123456
-    #    driver-class-name: com.mysql.cj.jdbc.Driver
-
     hikari:
       pool-name: HikariCP
       minimum-idle: 5
@@ -71,6 +65,31 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+
+  # ElasticSearch配置
+  elasticsearch:
+    uris: http://localhost:9200
+    username:
+    password:
+    connection-timeout: 10s
+    socket-timeout: 30s
+
+
+  # Redis配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 200
+          max-wait: -1ms
+          max-idle: 20
+          min-idle: 5
+
 
 # MyBatis-Plus
 mybatis-plus:
@@ -92,7 +111,7 @@ mybatis-plus:
       logic-not-delete-value: 0
 
 
-# ??
+# 跨域
 cors:
   allowed-origins: "*"
   allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
@@ -105,9 +124,10 @@ jwt:
   secret: mySecretKey1234567890123456789012345678900
   expiration: 86400000  # 24???????
 
-# ????
+# 计划任务
 schedule:
   enabled: true
+
 
 
 

@@ -39,6 +39,12 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>) => {
     console.log('收到响应:', response.status, response.config.url, response.data)
+    
+    // 如果是blob响应（文件下载），直接返回
+    if (response.config.responseType === 'blob') {
+      return response
+    }
+    
     const { data } = response
     
     // 处理业务逻辑错误
@@ -130,11 +136,22 @@ class Request {
   }
   
   // 下载文件
-  download(url: string, filename?: string, config?: RequestOptions): Promise<void> {
-    return service.get(url, {
+  download(url: string, filename?: string, config?: RequestOptions & { method?: string, data?: any }): Promise<void> {
+    const method = config?.method?.toLowerCase() || 'get'
+    const requestConfig = {
       ...config,
-      responseType: 'blob'
-    }).then((response) => {
+      responseType: 'blob' as const
+    }
+    
+    let requestPromise: Promise<AxiosResponse>
+    
+    if (method === 'post') {
+      requestPromise = service.post(url, config?.data, requestConfig)
+    } else {
+      requestPromise = service.get(url, requestConfig)
+    }
+    
+    return requestPromise.then((response) => {
       const blob = new Blob([response.data])
       const downloadUrl = window.URL.createObjectURL(blob)
       const link = document.createElement('a')

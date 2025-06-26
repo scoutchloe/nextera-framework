@@ -142,6 +142,9 @@
         </div>
       </div>
     </div>
+
+    <!-- 订单统计 -->
+    <OrderStatistics />
   </div>
 </template>
 
@@ -149,6 +152,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useI18n } from '@/composables/useI18n'
+import OrderStatistics from './OrderStatistics.vue'
 import { 
   User, 
   Document, 

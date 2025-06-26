@@ -20,6 +20,10 @@ const getDefaultRoute = (userStore: any): string => {
     console.log('getDefaultRoute: 用户有user权限，返回/user/list')
     return '/user/list'
   }
+  if (userStore.hasPermission('order:list:view')) {
+    console.log('getDefaultRoute: 用户有order:list:view权限，返回/order/list')
+    return '/order/list'
+  }
   if (userStore.hasPermission('system:admin:view')) {
     console.log('getDefaultRoute: 用户有system:admin:view权限，返回/system/admin')
     return '/system/admin'
@@ -216,6 +220,29 @@ const routes: RouteRecordRaw[] = [
               icon: 'PriceTag',
               requireAuth: true,
               permissions: ['article:tag:list']
+            }
+          }
+        ]
+      },
+      {
+        path: '/order',
+        name: 'Order',
+        redirect: '/order/list',
+        meta: {
+          title: '订单管理',
+          icon: 'Tickets',
+          requireAuth: true
+        },
+        children: [
+          {
+            path: '/order/list',
+            name: 'OrderList',
+            component: () => import('@/views/order/OrderList.vue'),
+            meta: {
+              title: '订单列表',
+              icon: 'List',
+              requireAuth: true,
+              permissions: ['order:list:view']
             }
           }
         ]

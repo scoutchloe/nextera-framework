@@ -1,0 +1,53 @@
+{
+  "took" : 2,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 146,
+      "relation" : "eq"
+    },
+    "max_score" : 1.0,
+    "hits" : [
+      {
+        "_index" : "nextera_order",
+        "_id" : "193",
+        "_score" : 1.0,
+        "_source" : {
+          "_class" : "com.nextera.order.document.OrderDocument",
+          "id" : 193,
+          "orderNo" : "ORD20250625230548211",
+          "userId" : 10006,
+          "totalAmount" : 99.99,
+          "status" : 1,
+          "paymentMethod" : 1,
+          "remark" : "#分库分表测试订单# - 6",
+          "createdTime" : "2025-06-25T23:05:49",
+          "updatedTime" : "2025-06-25T23:05:49",
+          "orderItems" : [
+            {
+              "id" : 194,
+              "orderId" : 193,
+              "userId" : 10006,
+              "productId" : 7,
+              "productName" : "测试商品6",
+              "productPrice" : 99.99,
+              "quantity" : 1,
+              "totalPrice" : 99.99,
+              "createdTime" : "2025-06-25T23:05:49"
+            }
+          ],
+          "syncTime" : "2025-06-25T23:39:25",
+          "eventType" : "INSERT",
+          "database" : "order_db_2",
+          "table" : "t_order_2"
+        }
+      }
+    ]
+  }
+}

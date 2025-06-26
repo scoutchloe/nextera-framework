@@ -47,6 +47,8 @@ public @interface OperationLog {
         LOGOUT("LOGOUT", "退出"),
         EXPORT("EXPORT", "导出"),
         IMPORT("IMPORT", "导入"),
+        SYNC("SYNC", "同步"),
+        CACHE("CACHE", "缓存"),
         OTHER("OTHER", "其他");
         
         private final String code;
