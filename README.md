@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-Nextera Framework 是一个基于 Spring Cloud 2025.0.0 的现代化微服务开发框架，采用前后端分离架构，提供完整的用户管理、文章管理等功能模块。
+Nextera Framework 是一个基于 Spring Cloud 2025.0.0 的现代化微服务开发框架，采用前后端分离架构，提供完整的用户管理、订单管理，文章管理等功能模块。
 
 ## 技术栈
 
@@ -10,14 +10,16 @@ Nextera Framework 是一个基于 Spring Cloud 2025.0.0 的现代化微服务开
 - **Spring Cloud**: 2025.0.0
 - **Spring Boot**: 3.5.0
 - **构建工具**: Maven
-- **注册中心**: Nacos
-- **配置中心**: Nacos
+- **注册中心**: Nacos2.4
+- **seata**： 2.3.0
+- **配置中心**: Nacos2.4
+- **数据同步**：Canal 1.1.8
 - **服务调用**: OpenFeign + Dubbo
 - **ORM框架**: MyBatis-Plus
 - **数据库**: MySQL 8.0
 - **缓存**: Redis
-- **消息队列**: RocketMQ
-- **搜索引擎**: Elasticsearch
+- **消息队列**: RocketMQ 5.1.3
+- **搜索引擎**: Elasticsearch 8.18
 - **监控**: Prometheus + Grafana
 - **工具库**: Lombok, Hutool
 - **API文档**: Knife4j
@@ -34,28 +36,39 @@ Nextera Framework 是一个基于 Spring Cloud 2025.0.0 的现代化微服务开
 ## 项目结构
 
 ```
-nexteraFramework/
-├── backend/                    # 后端代码
-│   ├── nextera-common/         # 公共模块
-│   ├── nextera-gateway/        # 网关服务
-│   ├── nextera-auth/           # 认证服务
-│   ├── nextera-user/           # 用户服务
-│   ├── nextera-article/        # 文章服务
-│   ├── nextera-manage-user/    # 用户管理服务
-│   └── pom.xml                 # 父级POM
-├── frontend/                   # 前端代码
-├── management-frontend/        # 管理端前端
-├── docker/                     # Docker配置文件
-├── docs/                       # 项目文档
-├── docker-compose.yml          # 基础设施部署
-└── README.md                   # 项目说明
+├── backend                 #springCloud 后端
+│   ├── nextera-api         # api 模块
+│   ├── nextera-article     # 文章模块 
+│   ├── nextera-auth        # 认证模块
+│   ├── nextera-common      # 通用模块
+│   ├── nextera-gateway     # 网关
+│   ├── nextera-id          # 自增长id 生成器模块
+│   ├── nextera-id-api      # id-api 模块 
+│   ├── nextera-order       # 分库分布订单模块 
+│   ├── nextera-order-api   # 订单api 模块 
+│   ├── nextera-user        # 用户模块 
+│   └── pom.xml             # pom 
+├── docker                  # docker 环境配置
+│   ├── grafana
+│   ├── mysql
+│   ├── prometheus
+│   ├── redis
+│   └── rocketmq
+├── docker-compose.yml      #docker 环境配置  
+├── docker-compose.yml.backup
+├── frontend
+├── management              #管理端： 
+│   ├── backend             # 管理端后端 ( ES 订单搜索)
+│   └── frontend            # 管理端前端 (RBAC， 按钮级别权限控制,中英文切换)
+└── src
+    └── main
 ```
 
 ## 快速开始
 
 ### 环境要求
 
-- JDK 17+
+- JDK 21+
 - Maven 3.8+
 - Node.js 18+
 - Docker & Docker Compose
@@ -252,7 +265,7 @@ npm run dev
 
 ## 更新日志
 
-### v1.0.0 (2024-12-19)
+### v1.0.0 (2025-06-16)
 - 初始版本发布
 - 完成基础架构搭建
 - 实现用户管理功能
