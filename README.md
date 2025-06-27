@@ -2,7 +2,12 @@
 
 ## 项目概述
 
-Nextera Framework 是一个基于 Spring Cloud 2025.0.0 的现代化微服务开发框架，采用前后端分离架构，提供完整的用户管理、订单管理，文章管理等功能模块。
+Nextera Framework 是一个基于 Spring Cloud 2025.0.0 的现代化微服务开发框架，采用前后端分离架构，提供完整的用户管理、订单管理，文章管理等功能模块。集成canal，seata，rocketmq，elasticsearch, shardingSphere等。
+
+管理端相关截图:
+![snapshots/systemEN.png](snapshots/systemEN.png)
+![snapshots/systemZH.png](snapshots/systemZH.png)
+![snapshots/order.png](snapshots/order.png)
 
 ## 技术栈
 
@@ -11,7 +16,8 @@ Nextera Framework 是一个基于 Spring Cloud 2025.0.0 的现代化微服务开
 - **Spring Boot**: 3.5.0
 - **构建工具**: Maven
 - **注册中心**: Nacos2.4
-- **seata**： 2.3.0
+- **分布式事务**： seata2.3.0
+- **分库分表**： shardingSphere5
 - **配置中心**: Nacos2.4
 - **数据同步**：Canal 1.1.8
 - **服务调用**: OpenFeign + Dubbo
