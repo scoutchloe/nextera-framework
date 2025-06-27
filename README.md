@@ -245,11 +245,11 @@ npm run dev
 - **接口性能监控**
 
 ## 文档资源
-
-- [开发计划](./开发计划.md)
 - [API文档](http://localhost:8080/doc.html)
 - [架构设计文档](./docs/architecture.md)
-- [部署指南](./docs/deployment.md)
+- [RocketMQ事务消息](./docs/RocketMQ事务消息实现总结.md)
+- [TCC分布式事务说明](./docs/TCC分布式事务说明文档.md)
+- [Elasticsearch 聚合搜索说明](./docs/data_flow_architecture.png)
 
 ## 贡献指南
 
@@ -271,9 +271,25 @@ npm run dev
 
 ## 更新日志
 
+### v1.0.3 (2025-06-26)
+- 分支名：elasticsearch_aggregate_redis_shardingSphere
+- 实现canal order表同步，rocketmq 接收消息，订单数据写入Elasticsearch
+
+### v1.0.2 (2025-06-25)
+- 分支名： sharding_db_table
+- 创建订单分库分布，分库分布功能实现。
+
+### v1.0.1 (2025-06-24)
+- 分支名： rocketmq-local-message-table-forTX
+- 实现RocketMQ 本地消息表模式实现分布式事务
+
 ### v1.0.0 (2025-06-16)
+- 分支名： master
 - 初始版本发布
 - 完成基础架构搭建
 - 实现用户管理功能
 - 实现文章管理功能
 - 完成前端界面开发 
+- 完成管理端RBAC，权限开发
+- 集成dubbo 服务调用
+- 集成seata 分布式事务AT，TCC模式
