@@ -47,11 +47,14 @@
           <el-col :span="6">
             <el-form-item :label="$t('order.status.title')">
               <el-select 
+                class="status-select-input2"
                 v-model="searchForm.statusList" 
                 placeholder="选择状态"
                 multiple
                 clearable
-                style="width: 100%"
+                collapse-tags
+                collapse-tags-tooltip="true"
+                style="width: 155px;"
               >
                 <el-option
                   v-for="status in statusOptions"
@@ -194,7 +197,7 @@
         </el-table-column>
         <el-table-column prop="createdTime" :label="$t('order.table.createTime')" width="160" sortable="custom" />
         <el-table-column prop="updatedTime" :label="$t('order.table.updateTime')" width="160" sortable="custom" />
-        <el-table-column :label="$t('order.table.actions')" width="200" fixed="right">
+        <el-table-column :label="$t('order.table.actions')" width="300" fixed="right">
           <template #default="{ row }">
             <div class="action-buttons">
               <el-button type="text" size="small" @click="showOrderDetail(row)">
@@ -215,11 +218,28 @@
               >
                 同步ES
               </el-button> -->
+              <el-button
+                type="info"
+                link
+                size="small"
+                v-if="getNextStatus(row.status)"
+                >
+                <div class="status-update-area">
+                  <div class="update-text">更新状态</div>
+                  <div 
+                      class="next-status" 
+                      @click="handleStatusUpdate(row)"
+                      :class="{ 'updating': row.updating }"
+                    >
+                    <span>{{ getNextStatusDescription(row.status) }}</span>
+                  </div>
+                </div>
+              </el-button>
             </div>
 
             
             <!-- 状态更新区域 -->
-            <div class="status-update-area" v-if="getNextStatus(row.status)">
+            <div class="status-update-area" v-if="false && getNextStatus(row.status)">
               <div class="update-text">更新状态</div>
               <div 
                 class="next-status" 
@@ -986,6 +1006,13 @@ onMounted(() => {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+  }
+
+  .status-select-input{
+    word-break:keep-all;// 防止状态选项过长时换行
+    white-space: nowrap; // 防止状态选项过长时换行
+    overflow: hidden; // 超出部分隐藏
+    text-overflow: ellipsis; // 超出部分显示省略号
   }
   
   .action-info {
