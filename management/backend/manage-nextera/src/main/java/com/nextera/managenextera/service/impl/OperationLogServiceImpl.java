@@ -9,6 +9,7 @@ import com.nextera.managenextera.mapper.OperationLogMapper;
 import com.nextera.managenextera.service.OperationLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -28,7 +29,7 @@ public class OperationLogServiceImpl extends ServiceImpl<OperationLogMapper, Ope
     private final OperationLogMapper operationLogMapper;
     
     @Override
-    @Async
+    @Async("nexteraTaskExecutor")
     public void recordLog(OperationLogs operationLog) {
         try {
             operationLogMapper.insert(operationLog);

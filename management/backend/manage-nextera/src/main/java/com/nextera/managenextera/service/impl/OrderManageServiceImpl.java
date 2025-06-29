@@ -1,6 +1,7 @@
 package com.nextera.managenextera.service.impl;
 
 
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nextera.managenextera.dto.OrderManageDTO;
@@ -8,6 +9,7 @@ import com.nextera.managenextera.dto.OrderSearchDTO;
 import com.nextera.managenextera.entity.OrderES;
 import com.nextera.managenextera.repository.OrderESRepository;
 import com.nextera.managenextera.service.OrderManageService;
+import com.nextera.managenextera.service.OrderNativeQueryService;
 import com.nextera.managenextera.service.RedisService;
 import com.nextera.managenextera.util.OrderESUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,9 @@ import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.query.BaseQuery;
+import org.springframework.data.elasticsearch.core.query.Criteria;
+import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.core.query.StringQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
@@ -56,6 +61,9 @@ public class OrderManageServiceImpl implements OrderManageService {
     @Autowired
     private RedisService redisService;
 
+    @Autowired
+    private OrderNativeQueryService orderNativeQueryService;
+
     private static final String CACHE_PREFIX = "order:manage:";
     private static final String STATUS_CACHE_KEY = "order:status:distribution";
 
@@ -64,19 +72,20 @@ public class OrderManageServiceImpl implements OrderManageService {
         log.info("分页查询订单，搜索条件: {}", searchDTO);
 
         try {
-            // 判断是否需要使用高级嵌套查询
-            if (needsAdvancedNestedQuery(searchDTO)) {
-                return getOrderPageWithAdvancedNestedQuery(searchDTO);
-            }
-            
-            // 如果有商品名称查询，使用基础嵌套查询
+            // 判断是否需要使用高级嵌套查询 (ugly syntatic)
+//            if (needsAdvancedNestedQuery(searchDTO)) {
+//                return getOrderPageWithAdvancedNestedQuery(searchDTO);
+//            }
+
+//            // 如果有商品名称查询，使用基础嵌套查询
             if (StringUtils.hasText(searchDTO.getProductName())) {
-                return getOrderPageByProductName(searchDTO);
+                return orderNativeQueryService.getOrderPage(searchDTO);
             }
             
             // 构建ES查询条件
+            log.info("订单Criteria 查询: {}", searchDTO);
             Query query = OrderESUtil.buildSearchQuery(searchDTO);
-            
+
             // 执行ES查询
             SearchHits<OrderES> searchHits = elasticsearchOperations.search(query, OrderES.class);
             
@@ -431,11 +440,13 @@ public class OrderManageServiceImpl implements OrderManageService {
         
         try {
             // 使用ElasticsearchTemplate进行精确查询
-            Query searchQuery = NativeQuery.builder()
-                    .withQuery(new StringQuery("{\"term\":{\"id\":" + orderId + "}}"))
-                    .build();
-            
-            SearchHits<OrderES> searchHits = elasticsearchTemplate.search(searchQuery, OrderES.class);
+//            Query searchQuery = NativeQuery.builder()
+//                    .withQuery(new StringQuery("{\"term\":{\"id\":" + orderId + "}}"))
+//                    .build();
+            Query searchQuery2 = CriteriaQuery.builder(new Criteria()
+                    .and("id").is(orderId)).build();
+
+            SearchHits<OrderES> searchHits = elasticsearchTemplate.search(searchQuery2, OrderES.class);
             
             if (searchHits.hasSearchHits()) {
                 OrderES orderES = searchHits.getSearchHit(0).getContent();

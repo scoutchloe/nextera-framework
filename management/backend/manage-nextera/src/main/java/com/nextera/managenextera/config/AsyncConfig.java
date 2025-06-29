@@ -17,8 +17,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 @EnableAsync
 public class AsyncConfig {
     
-    @Bean("lighthouseTaskExecutor")
-    public Executor lighthouseTaskExecutor() {
+    @Bean("nexteraTaskExecutor")
+    public Executor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         
         // 核心线程数
@@ -34,7 +34,7 @@ public class AsyncConfig {
         executor.setKeepAliveSeconds(60);
         
         // 线程名前缀
-        executor.setThreadNamePrefix("lighthouse-task-async-");
+        executor.setThreadNamePrefix("nextera-task-async-");
         
         // 拒绝策略
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());

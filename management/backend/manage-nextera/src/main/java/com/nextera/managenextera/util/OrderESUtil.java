@@ -9,15 +9,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.core.query.Criteria;
 import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
 import org.springframework.data.elasticsearch.core.query.Query;
-
 import org.springframework.util.StringUtils;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.nextera.managenextera.util.LocalTimeUtil.localDateTimeToString;
 
 /**
  * 订单ES工具类
@@ -65,20 +63,20 @@ public class OrderESUtil {
 
         // 时间范围查询
         if (searchDTO.getCreatedTimeStart() != null && searchDTO.getCreatedTimeEnd() != null) {
-            criteria = criteria.and("createdTime").between(searchDTO.getCreatedTimeStart(), searchDTO.getCreatedTimeEnd());
+            criteria = criteria.and("createdTime").between(
+                    localDateTimeToString(searchDTO.getCreatedTimeStart()), localDateTimeToString(searchDTO.getCreatedTimeEnd()));
         } else if (searchDTO.getCreatedTimeStart() != null) {
-            criteria = criteria.and("createdTime").greaterThanEqual(searchDTO.getCreatedTimeStart());
+            criteria = criteria.and("createdTime").greaterThanEqual(localDateTimeToString(searchDTO.getCreatedTimeStart()));
         } else if (searchDTO.getCreatedTimeEnd() != null) {
-            criteria = criteria.and("createdTime").lessThanEqual(searchDTO.getCreatedTimeEnd());
+            criteria = criteria.and("createdTime").lessThanEqual(localDateTimeToString(searchDTO.getCreatedTimeEnd()));
         }
 
         // 构建分页
         Pageable pageable = buildPageable(searchDTO);
-
         // 创建基础查询
         CriteriaQuery query = new CriteriaQuery(criteria).setPageable(pageable);
         
-        // 如果有商品名称查询，我们需要特殊处理
+        // 如果有商品名称查询，我们需要特殊处理 Criteria 不支持nested query
         // 暂时先不加入criteria中，而是在Service层进行后处理
         return query;
     }
